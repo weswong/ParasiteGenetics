@@ -1,3 +1,4 @@
+import itertools
 import math
 import random
 from collections import defaultdict
@@ -25,21 +26,25 @@ P_falciparum_chromosomes_Mb = { 1  : 0.643,
                                 #'Api': ??
                               }
 
-SNP_positions=defaultdict(list)
+SNPs=defaultdict(list)
 
-def from_txt_table(filename):
+def get_N_SNPs():
+    return sum([len(v) for v in SNPs.values()])
+
+def from_txt_table(filename,allele_freqs=[]):
     '''
     Read SNP positions from file in following format:
     CHR    POS
     Pf3D7_01_v3    130339
     '''
-    logger.debug('Reading SNPs from file: %s' % filename)
+    logger.info('Reading SNPs from file: %s' % filename)
     with open(filename) as f:
-        for content in f.readlines()[1:]:
+        for idx,content in enumerate(f.readlines()[1:]):
             chr,pos = content.split()
-            SNP_positions[int(chr.split('_')[1])].append(int(pos))
-    for c,p in SNP_positions.items():
-        logger.debug('  Chr %d:\tSNPs: %s' % (c,p))
+            freq=allele_freqs[idx] if allele_freqs else 0.5
+            SNPs[int(chr.split('_')[1])].append((int(pos),freq))
+    for c,s in SNPs.items():
+        logger.debug('  Chr %d: SNPs (pos,freq): %s' % (c,s))
 
 def get_recombination_locations(chrom):
     next_location=0
@@ -48,16 +53,24 @@ def get_recombination_locations(chrom):
         locations.append(next_location)
         d = int(math.ceil(random.expovariate(lambd=1.0/bp_per_morgan)))
         next_location+=d
-    logger.debug('Chr %d:\tRecomb: %s' % (chrom,locations))
+    logger.debug('Chr %d: Recomb: %s' % (chrom,locations))
     return locations
 
 class Genome:
     '''The discretized representation SNPs on chromosomes'''
 
-    def __init__(self,genome):
-        self.genome=genome
+    id=itertools.count()
 
-    @classmethod
-    def random_from_allele_frequencies(cls):
+    def __init__(self,genome=[]):
+        self.id=Genome.id.next()
+        if genome:
+            self.genome=genome
+        else:
+            self.genome=random.getrandbits(get_N_SNPs())
+        logger.debug('Genome: id=%d, genome=%s' % (self.id,self.print_bits()))
 
-        return cls(g)
+    def __repr__(self):
+        return str(self.genome)
+
+    def print_bits(self):
+        return 'Genome: ' + ('{0:0>%db}' % get_N_SNPs()).format(self.genome)
