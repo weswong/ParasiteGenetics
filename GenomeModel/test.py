@@ -1,23 +1,26 @@
+from utils import log
+
 import genome as gn
 gn.Genome.initializeSNPs('barcode')
 
-print('\nRandom from allele frequencies:')
+log.debug('\nRandom from allele frequencies:')
 genomes=[gn.Genome.from_allele_frequencies() for _ in range(3)]
-print('\nReference:')
+log.debug('\nReference:')
 genomes+=[gn.Genome.from_reference()]
-print('\nComplete mutant from barcode:')
+log.debug('\nComplete mutant from barcode:')
 genomes+=[gn.Genome.from_barcode([1]*gn.Genome.get_n_SNPs())]
 
-#import matplotlib.pyplot as plt
-#n_recombinations=[]
-#for _ in range(100):
-#    n=0
-#    for c in gn.P_falciparum_chromosomes_Mb.keys():
-#        if len(gn.get_recombination_locations(chrom=c))>1:
-#            n+=1
-#    n_recombinations.append(n)
-#plt.hist(n_recombinations)
-#plt.show()
+import numpy as np
+import matplotlib.pyplot as plt
+n_recombinations=[]
+for _ in range(100):
+    n=0
+    for c in gn.Pf_chrom_lengths.index:
+        if gn.get_recombination_locations(chrom=c):
+            n+=1
+    n_recombinations.append(n)
+plt.hist(n_recombinations,bins=np.arange(-0.5,gn.Genome.get_n_SNPs()+0.5))
+plt.show()
 
 #import random
 # def cxOnePoint(ind1, ind2):

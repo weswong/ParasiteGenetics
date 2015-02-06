@@ -39,11 +39,12 @@ def display_bit(b):
 def get_recombination_locations(chrom):
     next_location=0
     locations=[]
-    while next_location < P_falciparum_chromosomes_Mb[chrom]*bp_per_Mb:
-        locations.append(next_location)
+    while next_location < Pf_chrom_lengths[chrom]:
+        if next_location:
+            locations.append(next_location)
         d = int(math.ceil(random.expovariate(lambd=1.0/bp_per_morgan)))
         next_location+=d
-    log.debug('Chr %d: Recomb: %s', chrom, locations)
+    log.debug('Chr %s recomb: %s', chrom, locations)
     return locations
 
 class Genome:
