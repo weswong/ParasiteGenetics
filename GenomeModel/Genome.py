@@ -1,22 +1,24 @@
 import itertools
 import math
 import random
-import pandas as pd
 from utils import log
+from collections import defaultdict
 
 bp_per_morgan = 1.5e6
 bp_per_Mbp = 1e6
 chrom_names=range(1,15) # 'MT', 'Api'
 chrom_lengths_Mbp=[0.643,0.947,1.1,1.2,1.3,1.4,1.4,1.3,1.5,1.7,2.0,2.3,2.7,3.3]
-Pf_chrom_lengths=pd.Series([int(bp_per_Mbp*c) for c in chrom_lengths_Mbp],
-                           index=chrom_names)
-log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths.to_string())
+Pf_chrom_lengths=dict(zip(chrom_names,
+                          [int(bp_per_Mbp*c) for c in chrom_lengths_Mbp]))
+log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
 def find_closest_SNPs(snps):
-    g=snps.groupby('chromosome')
+    snp_pos_by_chrom=defaultdict(list)
+    for snp in snps:
+        snp_pos_by_chrom[snp.chromosome].append(snp.position)
     min_dist=[]
-    for c,s in g:
-        p=sorted(s.position.tolist())
+    for c,s in snp_pos_by_chrom.items():
+        p=sorted(s)
         d=[j-i for i, j in itertools.izip(p[:-1], p[1:])]
         if d:
             min_dist=min(d+[min_dist])
@@ -36,16 +38,31 @@ def display_bit(b):
     #return str(b)
     return '*' if b else '-'
 
+@profile
 def get_recombination_locations(chrom):
     next_location=0
     locations=[]
-    while next_location < Pf_chrom_lengths[chrom]:
+    chrom_length=Pf_chrom_lengths[chrom]
+    while next_location < chrom_length:
         if next_location:
             locations.append(next_location)
         d = int(math.ceil(random.expovariate(lambd=1.0/bp_per_morgan)))
         next_location+=d
-    log.debug('Chr %s recomb: %s', chrom, locations)
+    #log.debug('Chr %s recomb: %s', chrom, locations)
     return locations
+
+class SNP:
+    '''
+    An object containing properties of a single nucleotide polymorphism
+    '''
+    def __init__(self,chrom,pos,freq=0.5,bin=None):
+        self.chromosome=chrom
+        self.position=pos
+        self.allele_freq=freq
+        self.bin=bin
+
+    def __repr__(self):
+        return 'SNP'+str((self.chromosome,self.position,self.bin))
 
 class Genome:
     '''The discretized representation of SNPs on chromosomes'''
@@ -55,17 +72,21 @@ class Genome:
     bin_size=None
 
     @classmethod
+    @profile
     def initializeSNPs(cls,SNP_source,bin_size=[]):
         if SNP_source=='barcode':
             import barcode
             cls.SNPs=barcode.SNPs
         else:
             raise Exception("Don't recognize SNP source type: %s", SNP_source)
-        if not bin_size:
+        if bin_size:
+            cls.bin_size=bin_size
+        else:
             min_dist=find_closest_SNPs(cls.SNPs)
             cls.bin_size=get_rounded_binning(min_dist,2)
-        cls.SNPs['bin']=cls.SNPs.position//cls.bin_size
-        log.debug(cls.SNPs.head())
+        for snp in cls.SNPs:
+            snp.bin=int(snp.position//cls.bin_size)
+        log.debug(cls.SNPs)
 
     def __init__(self,genome):
         self.id=Genome.id.next()
@@ -91,6 +112,7 @@ class Genome:
         return cls(cls.reference_genome())
 
     @classmethod
+    @profile
     def from_allele_frequencies(cls):
         genome=cls.reference_genome()
         for c,b,f in cls.iterate_SNPs():
@@ -107,8 +129,8 @@ class Genome:
 
     @classmethod
     def iterate_SNPs(cls):
-        for c,b,f in cls.SNPs[['chromosome', 'bin', 'allele_freq']].values:
-            yield int(c),int(b),f
+        for s in cls.SNPs:
+            yield s.chromosome,s.bin,s.allele_freq
 
     def display_barcode(self):
         snp_values=[]
