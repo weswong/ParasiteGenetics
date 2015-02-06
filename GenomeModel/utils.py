@@ -2,12 +2,13 @@ day_in_years = 1.0/365
 
 import logging
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
-import numpy.random as random
 def choose_without_replacement(from_list,N):
     '''
-    O(M) in choose M from N scenario, which is much faster for typical use case than random.choice, which is O(N)
+    O(M) in choose M from N scenario,
+    which is much faster for typical use case
+    than random.choice, which is O(N)
     '''
     chosen_idxs=set()
     chosen=[]
