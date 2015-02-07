@@ -13,18 +13,6 @@ genomes+=[gn.Genome.from_barcode([1]*gn.Genome.get_n_SNPs())]
 for c in gn.Pf_chrom_lengths.keys():
     r=gn.get_recombination_locations(chrom=c)
 
-# import numpy as np
-# import matplotlib.pyplot as plt
-# n_recombinations=[]
-# for _ in range(1):
-#     n=0
-#     for c in gn.Pf_chrom_lengths.index:
-#         if gn.get_recombination_locations(chrom=c):
-#             n+=1
-#     n_recombinations.append(n)
-# plt.hist(n_recombinations,bins=np.arange(-0.5,gn.Genome.get_n_SNPs()+0.5))
-# plt.show()
-
 #import random
 # def cxOnePoint(ind1, ind2):
 #     size = min(len(ind1), len(ind2))

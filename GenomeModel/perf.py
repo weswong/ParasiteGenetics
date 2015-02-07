@@ -1,11 +1,11 @@
 from utils import log
 import genome as gn
 
-@profile
+#@profile
 def genome_speed_test():
     gn.Genome.initializeSNPs('barcode')
 
-    genomes=[gn.Genome.from_allele_frequencies() for _ in range(10000)]
+    genomes=[gn.Genome.from_allele_frequencies() for _ in range(1000)]
 
     for g in genomes:
         for c in gn.Pf_chrom_lengths.keys():
@@ -52,6 +52,15 @@ def pandas_DF_vs_SNP_class():
     test_pandas_iteration()
     test_SNP_class_iteration(snps)
 
+import numpy as np
+#@profile
+def zero_array_test(n_tests,n_chrom,n_bins):
+    for i in range(n_tests):
+        for j in range(n_chrom):
+            a=[0]*n_bins
+            b=np.zeros(n_bins)
+
 #pandas_vs_dict()
-genome_speed_test()
+#genome_speed_test()
 #pandas_DF_vs_SNP_class()
+zero_array_test(1000,14,150)

@@ -6,7 +6,7 @@ from collections import defaultdict
 
 bp_per_morgan = 1.5e6
 bp_per_Mbp = 1e6
-chrom_names=range(1,15) # 'MT', 'Api'
+chrom_names=range(1,15) # + ['MT','Api']
 chrom_lengths_Mbp=[0.643,0.947,1.1,1.2,1.3,1.4,1.4,1.3,1.5,1.7,2.0,2.3,2.7,3.3]
 Pf_chrom_lengths=dict(zip(chrom_names,
                           [int(bp_per_Mbp*c) for c in chrom_lengths_Mbp]))
@@ -38,7 +38,7 @@ def display_bit(b):
     #return str(b)
     return '*' if b else '-'
 
-@profile
+#@profile
 def get_recombination_locations(chrom):
     next_location=0
     locations=[]
@@ -72,7 +72,7 @@ class Genome:
     bin_size=None
 
     @classmethod
-    @profile
+    #@profile
     def initializeSNPs(cls,SNP_source,bin_size=[]):
         if SNP_source=='barcode':
             import barcode
@@ -99,6 +99,7 @@ class Genome:
         #return self.display_genome()
 
     @classmethod
+    #@profile
     def reference_genome(cls):
         genome={}
         for chrom_name,chrom_len in Pf_chrom_lengths.iteritems():
@@ -112,7 +113,7 @@ class Genome:
         return cls(cls.reference_genome())
 
     @classmethod
-    @profile
+    #@profile
     def from_allele_frequencies(cls):
         genome=cls.reference_genome()
         for c,b,f in cls.iterate_SNPs():
