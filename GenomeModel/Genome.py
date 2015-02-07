@@ -101,7 +101,7 @@ def meiosis(g1,g2,cross_prob=0.5):
         #log.debug('Chrom %s',c)
         if random.random()<cross_prob:
             xpoints=get_crossover_points(chrom=c)
-            log.debug('Chr %d, xpoints=%s',c,xpoints)
+            #log.debug('Chr %d, xpoints=%s',c,xpoints)
             crossover(c1,c2,xpoints)
         if random.getrandbits(1):
             #log.debug('swap...')

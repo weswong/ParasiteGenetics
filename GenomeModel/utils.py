@@ -1,7 +1,7 @@
 day_in_years = 1.0/365
 
 import logging
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
 def choose_without_replacement(from_list,N):
