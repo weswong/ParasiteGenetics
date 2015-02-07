@@ -1,15 +1,16 @@
+import random
 from utils import log
 import genome as gn
 
 #@profile
 def genome_speed_test():
-    gn.Genome.initializeSNPs('barcode')
+    gn.initializeSNPs('barcode')
 
-    genomes=[gn.Genome.from_allele_frequencies() for _ in range(1000)]
+    genomes=[gn.Genome.from_allele_frequencies() for _ in range(100)]
 
-    for g in genomes:
-        for c in gn.Pf_chrom_lengths.keys():
-            r=gn.get_recombination_locations(chrom=c)
+    for _ in range(500):
+        g1,g2 = random.sample(genomes,2)
+        gn.meiosis(g1,g2)
 
 #@profile
 def test_dict_lookup(c):
@@ -25,14 +26,14 @@ def test_pandas_lookup(c):
 
 def build_SNP_class_list():
     snps=[]
-    gn.Genome.initializeSNPs('barcode')
+    gn.initializeSNPs('barcode')
     for c,p,b,f in gn.Genome.SNPs[['chromosome', 'position', 'bin', 'allele_freq']].values:
         snps.append(gn.SNP(c,p,f,b))
     return snps
 
 #@profile
 def test_pandas_iteration():
-    for c,b,f in gn.Genome.iterate_SNPs():
+    for c,b,f in gn.iterate_SNPs():
         pass
 
 #@profile
@@ -61,6 +62,6 @@ def zero_array_test(n_tests,n_chrom,n_bins):
             b=np.zeros(n_bins)
 
 #pandas_vs_dict()
-#genome_speed_test()
+genome_speed_test()
 #pandas_DF_vs_SNP_class()
-zero_array_test(1000,14,150)
+#zero_array_test(1000,14,150)

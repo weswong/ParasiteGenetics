@@ -8,7 +8,6 @@ allele_freqs=[ 0.7567, 0.5334, 0.9282, 0.4096,
                0.8641, 0.8476, 0.1940, 0.5053,
                0.6744, 0.8951, 0.5995, 0.9217 ]
 
-#@profile
 def positions_from_txt_table(filename,allele_freqs=[]):
     '''
     Read SNP positions from file in following format:

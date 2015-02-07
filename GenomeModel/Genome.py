@@ -12,6 +12,21 @@ Pf_chrom_lengths=dict(zip(chrom_names,
                           [int(bp_per_Mbp*c) for c in chrom_lengths_Mbp]))
 log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
+def initializeSNPs(SNP_source,bin_size=None):
+    if SNP_source=='barcode':
+        import barcode
+        Genome.SNPs=barcode.SNPs
+    else:
+        raise Exception("Don't recognize SNP source type: %s", SNP_source)
+    if bin_size:
+        Genome.bin_size=bin_size
+    else:
+        min_dist=find_closest_SNPs(Genome.SNPs)
+        Genome.bin_size=get_rounded_binning(min_dist,2)
+    for snp in Genome.SNPs:
+        snp.bin=int(snp.position//Genome.bin_size)
+    log.debug(Genome.SNPs)
+
 def find_closest_SNPs(snps):
     snp_pos_by_chrom=defaultdict(list)
     for snp in snps:
@@ -34,22 +49,64 @@ def get_rounded_binning(min_dist, ndigits=1):
     log.debug('Rounded genome-discretization binning = %d bp', bin_size)
     return bin_size
 
+def reference_genome():
+    genome={}
+    for chrom_name,chrom_len in Pf_chrom_lengths.iteritems():
+        n_bins=int(chrom_len/Genome.bin_size)
+        chrom=[0]*n_bins
+        genome[chrom_name]=chrom
+    return genome
+
+def iterate_SNPs():
+    for s in Genome.SNPs:
+        yield s.chromosome,s.bin,s.allele_freq
+
+def get_n_SNPs():
+    return len(Genome.SNPs)
+
 def display_bit(b):
     #return str(b)
     return '*' if b else '-'
 
-#@profile
-def get_recombination_locations(chrom):
-    next_location=0
-    locations=[]
-    chrom_length=Pf_chrom_lengths[chrom]
-    while next_location < chrom_length:
-        if next_location:
-            locations.append(next_location)
-        d = int(math.ceil(random.expovariate(lambd=1.0/bp_per_morgan)))
-        next_location+=d
-    #log.debug('Chr %s recomb: %s', chrom, locations)
-    return locations
+def pairwise(l):
+    "l -> (l0,l1), (l2,l3), (l4, l5), ..."
+    if len(l) % 2:
+        l.append(None)
+    a = iter(l)
+    return itertools.izip(a, a)
+
+def get_crossover_points(chrom,bp_per_morgan=bp_per_morgan):
+    next_point=0
+    xpoints=[]
+    chrom_length=int(Pf_chrom_lengths[chrom]/Genome.bin_size)
+    while next_point < chrom_length:
+        if next_point:
+            xpoints.append(next_point)
+        d = int(math.ceil(random.expovariate(Genome.bin_size/bp_per_morgan)))
+        next_point+=d
+    #log.debug('Chr %s recomb: %s', chrom, xpoints)
+    return xpoints
+
+def crossover(c1,c2,xpoints):
+    #log.debug('xpoints=%s',xpoints)
+    if not xpoints:
+        return c1,c2
+    for l1,l2 in pairwise(xpoints):
+        c1[l1:l2], c2[l1:l2] = c2[l1:l2], c1[l1:l2]
+
+def meiosis(g1,g2,cross_prob=0.5):
+    log.debug('Before meiosis:\n%s\n%s',g1,g2)
+    for c in chrom_names:
+        c1,c2=g1.genome[c],g2.genome[c]
+        #log.debug('Chrom %s',c)
+        if random.random()<cross_prob:
+            xpoints=get_crossover_points(chrom=c)
+            log.debug('Chr %d, xpoints=%s',c,xpoints)
+            crossover(c1,c2,xpoints)
+        if random.getrandbits(1):
+            #log.debug('swap...')
+            c1[:],c2[:]=c2[:],c1[:]
+    log.debug('After meiosis:\n%s\n%s',g1,g2)
 
 class SNP:
     '''
@@ -71,71 +128,39 @@ class Genome:
     SNPs=None
     bin_size=None
 
-    @classmethod
-    #@profile
-    def initializeSNPs(cls,SNP_source,bin_size=[]):
-        if SNP_source=='barcode':
-            import barcode
-            cls.SNPs=barcode.SNPs
-        else:
-            raise Exception("Don't recognize SNP source type: %s", SNP_source)
-        if bin_size:
-            cls.bin_size=bin_size
-        else:
-            min_dist=find_closest_SNPs(cls.SNPs)
-            cls.bin_size=get_rounded_binning(min_dist,2)
-        for snp in cls.SNPs:
-            snp.bin=int(snp.position//cls.bin_size)
-        log.debug(cls.SNPs)
-
     def __init__(self,genome):
         self.id=Genome.id.next()
         log.debug('Genome: id=%d', self.id)
         self.genome=genome
         log.debug('%s', self)
 
-    def __str__(self):
+    def __repr__(self):
         return self.display_barcode()
         #return self.display_genome()
 
     @classmethod
-    #@profile
-    def reference_genome(cls):
-        genome={}
-        for chrom_name,chrom_len in Pf_chrom_lengths.iteritems():
-            n_bins=int(chrom_len/cls.bin_size)
-            chrom=[0]*n_bins
-            genome[chrom_name]=chrom
-        return genome
-
-    @classmethod
     def from_reference(cls):
-        return cls(cls.reference_genome())
+        return cls(reference_genome())
 
     @classmethod
-    #@profile
     def from_allele_frequencies(cls):
-        genome=cls.reference_genome()
-        for c,b,f in cls.iterate_SNPs():
+        genome=reference_genome()
+        for c,b,f in iterate_SNPs():
             if random.random()<f:
                 genome[c][b]=1
         return cls(genome)
 
     @classmethod
     def from_barcode(cls,barcode):
-        genome=cls.reference_genome()
-        for (c,b,f),s in zip(cls.iterate_SNPs(),barcode):
+        genome=reference_genome()
+        for (c,b,f),s in zip(iterate_SNPs(),barcode):
             genome[c][b]=s
         return cls(genome)
 
-    @classmethod
-    def iterate_SNPs(cls):
-        for s in cls.SNPs:
-            yield s.chromosome,s.bin,s.allele_freq
 
     def display_barcode(self):
         snp_values=[]
-        for c,b,f in self.iterate_SNPs():
+        for c,b,f in iterate_SNPs():
             snp_values.append(self.genome[c][b])
         return ''.join([display_bit(b) for b in snp_values])
 
@@ -145,7 +170,3 @@ class Genome:
             s.append('Chromosome %s' % chrom_name)
             s.append(''.join([display_bit(b) for b in chrom]))
         return '\n'.join(s)
-
-    @classmethod
-    def get_n_SNPs(cls):
-        return len(cls.SNPs)
