@@ -20,6 +20,11 @@ def init_test():
     add_mutant(gg)
     add_random(gg,N=10)
 
+def SNP_test():
+    g=gn.reference_genome()
+    for c,b,f in gn.iterate_SNPs():
+        log.debug('Chrom %d (length %d): SNP at position %d' % (c,len(g[c]),b))
+
 def meiosis_test(N):
     gg=[]
     add_reference(gg)
@@ -29,7 +34,9 @@ def meiosis_test(N):
        gn.meiosis(g1,g2)
 
 
-gn.initializeSNPs('barcode') ### why bin_size >= 2e5 crash?
+gn.initializeSNPs('barcode')
+
+SNP_test()
 
 init_test()
 

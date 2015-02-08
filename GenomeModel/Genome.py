@@ -24,7 +24,7 @@ def initializeSNPs(SNP_source,bin_size=None):
         min_dist=find_closest_SNPs(Genome.SNPs)
         Genome.bin_size=get_rounded_binning(min_dist,2)
     for snp in Genome.SNPs:
-        snp.bin=int(snp.position//Genome.bin_size)
+        snp.bin=int(snp.position/Genome.bin_size)
     log.debug(Genome.SNPs)
 
 def find_closest_SNPs(snps):
@@ -49,10 +49,13 @@ def get_rounded_binning(min_dist, ndigits=1):
     log.debug('Rounded genome-discretization binning = %d bp', bin_size)
     return bin_size
 
+def get_chromosome_bins(bp):
+    return int(math.ceil(bp/Genome.bin_size))
+
 def reference_genome():
     genome={}
     for chrom_name,chrom_len in Pf_chrom_lengths.iteritems():
-        n_bins=int(chrom_len/Genome.bin_size)
+        n_bins=get_chromosome_bins(chrom_len)
         chrom=[0]*n_bins
         genome[chrom_name]=chrom
     return genome
@@ -78,7 +81,7 @@ def pairwise(l):
 def get_crossover_points(chrom,bp_per_morgan=bp_per_morgan):
     next_point=0
     xpoints=[]
-    chrom_length=int(Pf_chrom_lengths[chrom]/Genome.bin_size)
+    chrom_length=get_chromosome_bins(Pf_chrom_lengths[chrom])
     while next_point < chrom_length:
         if next_point:
             xpoints.append(next_point)
