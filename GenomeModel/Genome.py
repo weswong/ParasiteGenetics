@@ -1,8 +1,8 @@
 import itertools
 import math
 import random
-from utils import log
 from collections import defaultdict
+from utils import log
 
 bp_per_morgan = 1.5e6
 bp_per_Mbp = 1e6
@@ -113,8 +113,9 @@ def meiosis(g1,g2,cross_prob=0.5):
 
 class SNP:
     '''
-    An object containing properties of a single nucleotide polymorphism
+    The properties of a single nucleotide polymorphism
     '''
+
     def __init__(self,chrom,pos,freq=0.5,bin=None):
         self.chromosome=chrom
         self.position=pos
@@ -125,7 +126,9 @@ class SNP:
         return 'SNP'+str((self.chromosome,self.position,self.bin))
 
 class Genome:
-    '''The discretized representation of SNPs on chromosomes'''
+    '''
+    The discretized representation of SNPs on chromosomes
+    '''
 
     id=itertools.count()
     SNPs=None
@@ -159,7 +162,6 @@ class Genome:
         for (c,b,f),s in zip(iterate_SNPs(),barcode):
             genome[c][b]=s
         return cls(genome)
-
 
     def display_barcode(self):
         snp_values=[]

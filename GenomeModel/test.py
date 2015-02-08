@@ -1,6 +1,7 @@
 import random
 from utils import log
 import genome as gn
+from infection import Infection
 
 def add_reference(genomes):
     log.debug('\nReference:')
@@ -33,11 +34,15 @@ def meiosis_test(N):
        g1,g2 = random.sample(gg,2)
        gn.meiosis(g1,g2)
 
+def infection_test():
+    gg=[]
+    add_random(gg,3)
+    inf=Infection(gg)
 
 gn.initializeSNPs('barcode')
 
-SNP_test()
+#SNP_test()
+#init_test()
+#meiosis_test(5)
 
-init_test()
-
-meiosis_test(5)
+infection_test()

@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(format='%(message)s', level=logging.INFO)
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 def choose_without_replacement(from_list,N):
