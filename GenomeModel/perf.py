@@ -2,6 +2,19 @@ import random
 from utils import log
 import genome as gn
 
+'''
+Package:
+  https://github.com/rkern/line_profiler
+
+Installation:
+  pip install line_profiler
+
+Usage:
+  Add @profile decorator to function
+  kernprof -l -v perf.py
+
+'''
+
 @profile
 def genome_speed_test():
     gn.initializeSNPs('barcode')

@@ -1,5 +1,3 @@
-day_in_years = 1.0/365
-
 import logging
 logging.basicConfig(format='%(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
