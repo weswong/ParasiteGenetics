@@ -91,25 +91,27 @@ def get_crossover_points(chrom,bp_per_morgan=bp_per_morgan):
     return xpoints
 
 def crossover(c1,c2,xpoints):
-    #log.debug('xpoints=%s',xpoints)
+    c3,c4=c1[:],c2[:]
     if not xpoints:
-        return c1,c2
+        return c3,c4
     for l1,l2 in pairwise(xpoints):
-        c1[l1:l2], c2[l1:l2] = c2[l1:l2], c1[l1:l2]
+        c3[l1:l2], c4[l1:l2] = c4[l1:l2], c3[l1:l2]
+    return c3,c4
 
-def meiosis(g1,g2,cross_prob=0.5):
-    log.debug('Before meiosis:\n%s\n%s',g1,g2)
+def meiosis(in1,in2):
+    #log.debug('Before meiosis:\n%s\n%s',in1,in2)
+    gg=[defaultdict(list) for _ in range(4)]
     for c in chrom_names:
-        c1,c2=g1.genome[c],g2.genome[c]
-        #log.debug('Chrom %s',c)
-        if random.random()<cross_prob:
-            xpoints=get_crossover_points(chrom=c)
-            #log.debug('Chr %d, xpoints=%s',c,xpoints)
-            crossover(c1,c2,xpoints)
-        if random.getrandbits(1):
-            #log.debug('swap...')
-            c1[:],c2[:]=c2[:],c1[:]
-    log.debug('After meiosis:\n%s\n%s',g1,g2)
+        c1,c2=in1.genome[c],in2.genome[c]
+        xpoints=get_crossover_points(chrom=c)
+        #log.debug('Chr %d, xpoints=%s',c,xpoints)
+        c3,c4=crossover(c1,c2,xpoints)
+        outputs=sorted([c1,c2,c3,c4], key=lambda *args: random.random())
+        for i in range(4):
+            gg[i][c]=outputs[i]
+    out1,out2,out3,out4=(Genome(gg[i]) for i in range(4))
+    #log.debug('After meiosis:\n%s\n%s\n%s\n%s',out1,out2,out3,out4)
+    return out1,out2,out3,out4
 
 class SNP:
     '''

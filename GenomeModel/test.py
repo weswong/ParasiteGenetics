@@ -1,18 +1,18 @@
 import random
 from utils import log
 import genome as gn
-from infection import Infection
+import infection as inf
 
 def add_reference(genomes):
-    log.debug('\nReference:')
+    log.debug('REFERENCE')
     genomes+=[gn.Genome.from_reference()]
 
 def add_mutant(genomes):
-    log.debug('\nComplete mutant from barcode:')
+    log.debug('MUTANT')
     genomes+=[gn.Genome.from_barcode([1]*gn.get_n_SNPs())]
 
 def add_random(genomes,N):
-  log.debug('\nRandom from allele frequencies:')
+  log.debug('RANDOM')
   genomes+=[gn.Genome.from_allele_frequencies() for _ in range(N)]
 
 def init_test():
@@ -31,18 +31,49 @@ def meiosis_test(N):
     add_reference(gg)
     add_mutant(gg)
     for _ in range(N):
-       g1,g2 = random.sample(gg,2)
-       gn.meiosis(g1,g2)
+        log.debug('MEIOSIS')
+        g1,g2 = random.sample(gg,2)
+        gn.meiosis(g1,g2)
+
+def plot_chokepoints():
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+    import seaborn as sns
+
+    o=[inf.sample_n_oocysts() for _ in range(2000)]
+    h=[inf.sample_n_hepatocytes() for _ in range(2000)]
+    data=pd.DataFrame({'oocysts':o,'hepatocytes':h})
+
+    sns.set(style='ticks')
+
+    f,(ax1,ax2)=plt.subplots(2,1,sharex=True)
+    ax1.hist(o,bins=np.arange(-0.5,49.5),alpha=0.3)
+    ax1.set_title('Oocysts')
+    ax2.hist(h,bins=np.arange(-0.5,49.5),alpha=0.3)
+    ax2.set_title('Hepatocytes')
+    ax2.set_xlim([-1,40])
+
+    sns.jointplot(x='oocysts',y='hepatocytes',data=data,
+                  kind='scatter',stat_func=None,dropna=False,color='navy',
+                  marginal_kws={'bins':np.arange(-0.5,49.5)},
+                  joint_kws={'alpha':0.1},
+                  xlim=[-1,40],ylim=[-1,40])
+
+    plt.show()
 
 def infection_test():
     gg=[]
-    add_random(gg,3)
-    inf=Infection(gg)
+    add_random(gg,5)
+    i=inf.Infection(gg)
+    h,o=inf.sample_n_hepatocytes(),inf.sample_n_oocysts()
+    log.debug('Sampling %d hepatocytes from %d oocysts',h,o)
 
 gn.initializeSNPs('barcode')
 
 #SNP_test()
 #init_test()
-#meiosis_test(5)
+meiosis_test(1)
 
-infection_test()
+#plot_chokepoints()
+#infection_test()
