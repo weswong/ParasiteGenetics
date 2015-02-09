@@ -1,5 +1,5 @@
 import random
-from utils import log
+import logging as log
 import genome as gn
 import infection as inf
 
@@ -63,19 +63,11 @@ def plot_chokepoints():
     plt.show()
 
 def infection_test():
+    inf.log.setLevel(log.DEBUG)
     gg=[]
     add_random(gg,5)
     i=inf.Infection(gg)
-    n_hep,n_ooc=inf.sample_n_hepatocytes(),inf.sample_n_oocysts()
-    log.info('From %d oocyst(s):',n_ooc)
-    sporozoites=[]
-    for g1,g2 in i.sample_gametocyte_pairs(n_ooc):
-        meiotic_products=gn.meiosis(g1,g2)
-        print(meiotic_products)
-        sporozoites.extend(meiotic_products)
-    log.info('Sample %d hepatocyte(s):',n_hep)
-    hepatocytes=random.sample(sporozoites,n_hep)
-    print(hepatocytes)
+    i.transmit()
 
 gn.initializeSNPs('barcode')
 

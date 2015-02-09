@@ -1,5 +1,5 @@
 import random
-from utils import log
+import logging as log
 import genome as gn
 
 '''

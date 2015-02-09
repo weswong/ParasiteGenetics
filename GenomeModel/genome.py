@@ -2,7 +2,11 @@ import itertools
 import math
 import random
 from collections import defaultdict
-from utils import log
+
+import logging
+logging.basicConfig(format='%(message)s')
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 bp_per_morgan = 1.5e6
 bp_per_Mbp = 1e6

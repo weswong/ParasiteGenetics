@@ -1,7 +1,10 @@
 import itertools
 import random
 import genome as gn
-from utils import log
+
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 def sample_n_oocysts():
     # Fit A.Ouedraogo membrane feeding data from Burkina Faso
@@ -21,7 +24,7 @@ class Infection:
     '''
 
     id=itertools.count()
-    max_tracked_strains=5
+    #max_tracked_strains=5
 
     def __init__(self,genomes=[]):
         self.id=Infection.id.next()
@@ -33,7 +36,15 @@ class Infection:
         return '\n'.join([str(g) for g in self.genomes])
 
     def transmit(self):
-        pass
+        n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
+        log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
+        sporozoite_strains=[]
+        for g1,g2 in self.sample_gametocyte_pairs(n_ooc):
+            meiotic_products=gn.meiosis(g1,g2)
+            log.debug(meiotic_products)
+            sporozoite_strains.extend(meiotic_products)
+        hepatocytes=[random.choice(sporozoite_strains) for _ in range(n_hep)]
+        return Infection(hepatocytes)
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]

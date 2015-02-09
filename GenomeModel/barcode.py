@@ -1,5 +1,8 @@
-from utils import log
 import genome as gn
+
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 allele_freqs=[ 0.7567, 0.5334, 0.9282, 0.4096,
                0.2809, 0.1045, 0.4659, 0.6340,
