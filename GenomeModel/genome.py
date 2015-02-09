@@ -100,7 +100,7 @@ def crossover(c1,c2,xpoints):
 
 def meiosis(in1,in2):
     #log.debug('Before meiosis:\n%s\n%s',in1,in2)
-    gg=[defaultdict(list) for _ in range(4)]
+    genomes=[defaultdict(list) for _ in range(4)]
     for c in chrom_names:
         c1,c2=in1.genome[c],in2.genome[c]
         xpoints=get_crossover_points(chrom=c)
@@ -108,8 +108,8 @@ def meiosis(in1,in2):
         c3,c4=crossover(c1,c2,xpoints)
         outputs=sorted([c1,c2,c3,c4], key=lambda *args: random.random())
         for i in range(4):
-            gg[i][c]=outputs[i]
-    out1,out2,out3,out4=(Genome(gg[i]) for i in range(4))
+            genomes[i][c]=outputs[i]
+    out1,out2,out3,out4=(Genome(genomes[i]) for i in range(4))
     #log.debug('After meiosis:\n%s\n%s\n%s\n%s',out1,out2,out3,out4)
     return out1,out2,out3,out4
 

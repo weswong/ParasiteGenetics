@@ -66,14 +66,22 @@ def infection_test():
     gg=[]
     add_random(gg,5)
     i=inf.Infection(gg)
-    h,o=inf.sample_n_hepatocytes(),inf.sample_n_oocysts()
-    log.debug('Sampling %d hepatocytes from %d oocysts',h,o)
+    n_hep,n_ooc=inf.sample_n_hepatocytes(),inf.sample_n_oocysts()
+    log.info('From %d oocyst(s):',n_ooc)
+    sporozoites=[]
+    for g1,g2 in i.sample_gametocyte_pairs(n_ooc):
+        meiotic_products=gn.meiosis(g1,g2)
+        print(meiotic_products)
+        sporozoites.extend(meiotic_products)
+    log.info('Sample %d hepatocyte(s):',n_hep)
+    hepatocytes=random.sample(sporozoites,n_hep)
+    print(hepatocytes)
 
 gn.initializeSNPs('barcode')
 
 #SNP_test()
 #init_test()
-meiosis_test(1)
+#meiosis_test(1)
 
 #plot_chokepoints()
-#infection_test()
+infection_test()

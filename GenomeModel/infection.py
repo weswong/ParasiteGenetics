@@ -21,6 +21,7 @@ class Infection:
     '''
 
     id=itertools.count()
+    max_tracked_strains=5
 
     def __init__(self,genomes=[]):
         self.id=Infection.id.next()
