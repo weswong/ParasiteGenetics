@@ -164,8 +164,7 @@ class Genome:
         #return self.display_genome()
 
     def __hash__(self):
-        kv=[(k,as_long(v)) for (k,v) in self.genome.items()]
-        return hash(tuple(kv))
+        return hash(tuple(tuple(v) for v in self.genome.values()))
 
     @classmethod
     def from_reference(cls):

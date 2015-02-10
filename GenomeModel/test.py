@@ -77,18 +77,18 @@ def sample_test(M,N,n_tests):
         chosen=pop.choose_without_replacement(M,N)
         print(chosen)
 
-def population_test():
-    #inf.log.setLevel(log.DEBUG)
+def population_test(tsteps):
+    inf.log.setLevel(log.DEBUG)
     pop.log.setLevel(log.DEBUG)
-    node_params={'id':1,'n_humans':10,'n_infections':10}
+    node_params={'id':1,'n_humans':10,'n_infections':5}
     p=pop.Population(**node_params)
-    for tstep in range(5):
+    for tstep in range(tsteps):
         transmitted_infections=[]
         for i in p.infections:
             if random.random() < 0.5:
                 transmitted_infections.append(i.transmit())
         p.add_infections(transmitted_infections)
-        print(p)
+        print('  %s' % p)
 
 gn.initializeSNPs('barcode')
 
@@ -99,4 +99,4 @@ gn.initializeSNPs('barcode')
 #plot_chokepoints()
 #infection_test()
 #sample_test(M=5,N=10,n_tests=10)
-population_test()
+population_test(2)
