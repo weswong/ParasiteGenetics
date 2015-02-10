@@ -1,6 +1,6 @@
-import itertools
 import math
 import random
+import itertools
 from collections import defaultdict
 
 import logging

@@ -2,6 +2,7 @@ import random
 import logging as log
 import genome as gn
 import infection as inf
+import population as pop
 
 def add_reference(genomes):
     log.debug('REFERENCE')
@@ -65,9 +66,15 @@ def plot_chokepoints():
 def infection_test():
     inf.log.setLevel(log.DEBUG)
     gg=[]
-    add_random(gg,5)
+    add_reference(gg)
+    add_mutant(gg)
     i=inf.Infection(gg)
     i.transmit()
+
+def population_test():
+    pop.log.setLevel(log.DEBUG)
+    node={'id':1,'n_humans':100,'n_infections':10}
+    p=pop.Population(**node)
 
 gn.initializeSNPs('barcode')
 
@@ -76,4 +83,5 @@ gn.initializeSNPs('barcode')
 #meiosis_test(1)
 
 #plot_chokepoints()
-infection_test()
+#infection_test()
+population_test()
