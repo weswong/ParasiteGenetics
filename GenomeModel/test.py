@@ -78,15 +78,17 @@ def sample_test(M,N,n_tests):
         print(chosen)
 
 def population_test():
-    inf.log.setLevel(log.DEBUG)
+    #inf.log.setLevel(log.DEBUG)
     pop.log.setLevel(log.DEBUG)
-    node={'id':1,'n_humans':5,'n_infections':3}
-    p=pop.Population(**node)
-    transmitted_infections=[]
-    for i in p.infections:
-        if random.random() < 1:
-            transmitted_infections.append(i.transmit())
-    p.add_infections(transmitted_infections)
+    node_params={'id':1,'n_humans':10,'n_infections':10}
+    p=pop.Population(**node_params)
+    for tstep in range(5):
+        transmitted_infections=[]
+        for i in p.infections:
+            if random.random() < 0.5:
+                transmitted_infections.append(i.transmit())
+        p.add_infections(transmitted_infections)
+        print(p)
 
 gn.initializeSNPs('barcode')
 

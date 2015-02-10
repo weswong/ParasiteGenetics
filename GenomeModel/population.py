@@ -43,12 +43,12 @@ class Population():
 
     def add_infections(self,infections):
         n_infections=len(infections)
-        log.debug('Add %d infections:\n%s',n_infections,infections)
+        log.debug('Add %d infections:',n_infections)
+        log.debug('\n\n'.join([str(i) for i in infections]))
         idxs=choose_without_replacement(n_infections,self.n_humans)
-        log.debug('Chose indices: %s',idxs)
+        log.debug('Selected indices: %s',idxs)
         for idx,infection in zip(idxs,infections):
-            print(idx,infection)
-            if idx<n_infections:
+            if idx<len(self.infections):
                 self.infections[idx].add_infection(infection)
                 log.debug('Merged strains (idx=%d):\n%s',idx,self.infections[idx])
             else:
