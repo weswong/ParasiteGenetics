@@ -14,7 +14,7 @@ def sample_n_oocysts():
     return 1 + int(random.weibullvariate(alpha=2.5,beta=0.65))
 
 def sample_n_hepatocytes():
-    # Bejon et al (2005)
+    # Bejon et al. "Calculation of Liver-to-Blood Inocula..." (2005)
     # ln(5)~=1.6, ln(2.7)~=1
     return int(random.lognormvariate(mu=1.6,sigma=1))
 
@@ -48,7 +48,7 @@ class Infection:
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
         if n_hep > max_transmit_strains:
-            log.debug('Truncating %d to %d sampled hepatocytes:',n_hep,max_transmit_strains)
+            log.debug('Truncating to %d hepatocytes:',max_transmit_strains)
             n_hep=max_transmit_strains
         sporozoite_strains=[]
         for g1,g2 in self.sample_gametocyte_pairs(n_ooc):
@@ -75,7 +75,7 @@ class Infection:
         return self.genomes[idx]
 
     def gametocyte_strain_cdf(self):
-        # TODO: something more skewed 
+        # TODO: something more skewed
         #       to account for blood-stage dynamics
         total=0
         cdf=[]

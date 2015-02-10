@@ -13,8 +13,8 @@ def add_mutant(genomes):
     genomes+=[gn.Genome.from_barcode([1]*gn.get_n_SNPs())]
 
 def add_random(genomes,N):
-  log.debug('RANDOM')
-  genomes+=[gn.Genome.from_allele_frequencies() for _ in range(N)]
+    log.debug('RANDOM')
+    genomes+=[gn.Genome.from_allele_frequencies() for _ in range(N)]
 
 def init_test():
     gg=[]
@@ -71,10 +71,24 @@ def infection_test():
     i=inf.Infection(gg)
     i.transmit()
 
+def sample_test(M,N,n_tests):
+    for _ in range(n_tests):
+        print('Choosing %d from %d'%(M,N))
+        chosen=pop.choose_without_replacement(M,N)
+        print(chosen)
+
 def population_test():
+    import copy
+    inf.log.setLevel(log.DEBUG)
     pop.log.setLevel(log.DEBUG)
-    node={'id':1,'n_humans':100,'n_infections':10}
+    node={'id':1,'n_humans':10,'n_infections':5}
     p=pop.Population(**node)
+    transmitted_infections=[]
+    for i in p.infections:
+        if random.random() < 1:
+            #transmitted_infections.append(i.transmit())
+            transmitted_infections.append(copy.deepcopy(i))
+    p.add_infections(transmitted_infections)
 
 gn.initializeSNPs('barcode')
 
@@ -84,4 +98,5 @@ gn.initializeSNPs('barcode')
 
 #plot_chokepoints()
 #infection_test()
+#sample_test(M=5,N=10,n_tests=10)
 population_test()
