@@ -78,16 +78,14 @@ def sample_test(M,N,n_tests):
         print(chosen)
 
 def population_test():
-    import copy
     inf.log.setLevel(log.DEBUG)
     pop.log.setLevel(log.DEBUG)
-    node={'id':1,'n_humans':10,'n_infections':5}
+    node={'id':1,'n_humans':5,'n_infections':3}
     p=pop.Population(**node)
     transmitted_infections=[]
     for i in p.infections:
         if random.random() < 1:
-            #transmitted_infections.append(i.transmit())
-            transmitted_infections.append(copy.deepcopy(i))
+            transmitted_infections.append(i.transmit())
     p.add_infections(transmitted_infections)
 
 gn.initializeSNPs('barcode')

@@ -117,6 +117,19 @@ def meiosis(in1,in2):
     #log.debug('After meiosis:\n%s\n%s\n%s\n%s',out1,out2,out3,out4)
     return out1,out2,out3,out4
 
+def distinct(genomes):
+    distinct=[]
+    seen = set()
+    for g in genomes:
+        h=hash(g)
+        if h not in seen:
+            seen.add(h)
+            distinct.append(g)
+    return distinct
+
+def as_long(G):
+    return int(''.join((str(b) for b in G)),2)
+
 class SNP:
     '''
     The properties of a single nucleotide polymorphism
@@ -149,6 +162,10 @@ class Genome:
     def __repr__(self):
         return self.display_barcode()
         #return self.display_genome()
+
+    def __hash__(self):
+        kv=[(k,as_long(v)) for (k,v) in self.genome.items()]
+        return hash(tuple(kv))
 
     @classmethod
     def from_reference(cls):

@@ -16,7 +16,7 @@ def sample_n_oocysts():
 def sample_n_hepatocytes():
     # Bejon et al. "Calculation of Liver-to-Blood Inocula..." (2005)
     # ln(5)~=1.6, ln(2.7)~=1
-    return int(random.lognormvariate(mu=1.6,sigma=1))
+    return max(1,int(random.lognormvariate(mu=1.6,sigma=0.8)))
 
 class Infection:
     '''
@@ -56,11 +56,7 @@ class Infection:
             log.debug(meiotic_products)
             sporozoite_strains.extend(meiotic_products)
         hepatocytes=[random.choice(sporozoite_strains) for _ in range(n_hep)]
-        # TODO: a mechanism here to merge identical strains
-        #       at minimum: set(random index)
-        #       but potentially we also want to do something upstream
-        #       to avoid re-counting meiotic products of 'selfing'
-        return Infection(hepatocytes)
+        return Infection(gn.distinct(hepatocytes))
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]
@@ -91,3 +87,4 @@ class Infection:
 
     def add_infection(self,inf):
         self.genomes.extend(inf.genomes)
+        self.genomes=gn.distinct(self.genomes)
