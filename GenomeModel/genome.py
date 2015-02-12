@@ -9,11 +9,14 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 bp_per_morgan = 1.5e6
-bp_per_Mbp = 1e6
-chrom_names=range(1,15) # + ['MT','Api']
-chrom_lengths_Mbp=[0.643,0.947,1.1,1.2,1.3,1.4,1.4,1.3,1.5,1.7,2.0,2.3,2.7,3.3]
-Pf_chrom_lengths=dict(zip(chrom_names,
-                          [int(bp_per_Mbp*c) for c in chrom_lengths_Mbp]))
+bp_per_Mbp    = 1e6
+
+chrom_names       = range(1,15) # + ['MT','Api']
+chrom_lengths_Mbp = [ 0.643, 0.947, 1.1, 1.2, 1.3, 1.4, 1.4,
+                      1.3,   1.5,   1.7, 2.0, 2.3, 2.7, 3.3 ]
+chrom_lengths_bp  = [ int(bp_per_Mbp*c) for c in chrom_lengths_Mbp ]
+
+Pf_chrom_lengths=dict(zip(chrom_names,chrom_lengths_bp))
 log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
 def initializeSNPs(SNP_source,bin_size=None):

@@ -1,6 +1,7 @@
 import random
 import itertools
 import genome as gn
+import simulation as sim
 
 import logging
 log = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class Infection:
     def __init__(self,genomes=[]):
         self.id=Infection.id.next()
         log.debug('Infection: id=%d', self.id)
-        self.timer=0
+        self.set_infection_timers()
         self.genomes=genomes
         log.debug('%s', self)
 
@@ -41,8 +42,21 @@ class Infection:
     def from_random(cls,n_clones=1):
         return cls([gn.Genome.from_allele_frequencies() for _ in range(n_clones)])
 
-    def update(self,dt):
-        self.timer += dt
+    def set_infection_timers(self):
+        self.infectiousness=sim.Params.infectious_generator(t=0)
+        self.infectiousness.send(None)
+        self.infection_timer=sim.Params.get_infection_duration()
+
+    def update(self,dt,vectorial_capacity):
+        self.infection_timer  -= dt
+        log.debug('infection_timer=%d',self.infection_timer)
+        self.infectiousness.send(dt)
+        transmit_prob = vectorial_capacity*dt*next(self.infectiousness)
+        log.debug('transmit_prob=%0.2f',transmit_prob)
+        transmit=[]
+        if random.random() < transmit_prob:
+            transmit=self.transmit()
+        return transmit
 
     def transmit(self):
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
@@ -88,3 +102,4 @@ class Infection:
     def add_infection(self,inf):
         self.genomes.extend(inf.genomes)
         self.genomes=gn.distinct(self.genomes)
+        self.set_infection_timers()

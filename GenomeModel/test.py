@@ -1,8 +1,12 @@
 import random
-import logging as log
 import genome as gn
 import infection as inf
 import population as pop
+import simulation as sim
+
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 def add_reference(genomes):
     log.debug('REFERENCE')
@@ -64,7 +68,7 @@ def plot_chokepoints():
     plt.show()
 
 def infection_test():
-    inf.log.setLevel(log.DEBUG)
+    inf.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
     add_mutant(gg)
@@ -73,13 +77,13 @@ def infection_test():
 
 def sample_test(M,N,n_tests):
     for _ in range(n_tests):
-        print('Choosing %d from %d'%(M,N))
+        log.debug('Choosing %d from %d',M,N)
         chosen=pop.choose_without_replacement(M,N)
-        print(chosen)
+        log.debug(chosen)
 
 def population_test(tsteps):
-    inf.log.setLevel(log.DEBUG)
-    pop.log.setLevel(log.DEBUG)
+    inf.log.setLevel(logging.DEBUG)
+    pop.log.setLevel(logging.DEBUG)
     node_params={'id':1,'n_humans':10,'n_infections':5}
     p=pop.Population(**node_params)
     for tstep in range(tsteps):
@@ -88,15 +92,36 @@ def population_test(tsteps):
             if random.random() < 0.5:
                 transmitted_infections.append(i.transmit())
         p.add_infections(transmitted_infections)
-        print('  %s' % p)
+        log.debug('  %s',p)
 
-gn.initializeSNPs('barcode')
+def generator_test(tsteps):
+    log.debug('GENERATOR')
+    G=sim.Params.infectious_generator()
+    G.send(None)
+    for i in range(tsteps):
+        G.send(sim.Params.sim_tstep)
+        n=next(G)
+        log.debug(n)
 
-#SNP_test()
-#init_test()
-#meiosis_test(1)
+def simulation_test():
+    sim.log.setLevel(logging.DEBUG)
+    pop.log.setLevel(logging.DEBUG)
+    #inf.log.setLevel(logging.DEBUG)
+    s=sim.Simulation()
+    #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
+    s.run()
 
-#plot_chokepoints()
-#infection_test()
-#sample_test(M=5,N=10,n_tests=10)
-population_test(2)
+if __name__ == '__main__':
+    gn.initializeSNPs('barcode')
+
+    #SNP_test()
+    #init_test()
+    #meiosis_test(1)
+
+    #plot_chokepoints()
+    #infection_test()
+
+    #sample_test(M=5,N=10,n_tests=10)
+    #population_test(tsteps=2)
+    #generator_test(tsteps=5)
+    simulation_test()
