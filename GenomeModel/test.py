@@ -166,5 +166,5 @@ if __name__ == '__main__':
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=5)
-    #simulation_test()
-    migration_test()
+    simulation_test()
+    #migration_test()

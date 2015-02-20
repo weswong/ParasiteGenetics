@@ -102,11 +102,10 @@ class Population:
         V=self.vectorial_capacity(self.parent.day)
         for iid,i in self.infections.items():
             transmits=i.update(dt,V)
-            if transmits:
-                transmissions.extend(transmits)
+            transmissions.extend(transmits)
             if i.infection_timer<=0:
                 expired=self.infections.pop(iid)
-            if i.migration.in_days<=0:
+            elif i.migration.in_days<=0:
                 emigrant=self.infections.pop(iid)
                 self.transmit_emigrant(emigrant)
         if transmissions:
