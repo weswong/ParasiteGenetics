@@ -1,3 +1,4 @@
+import math
 import random
 import genome as gn
 import infection as inf
@@ -74,7 +75,7 @@ def accumulate_test():
     A=[1]*random.randint(1,10)
     print(inf.accumulate_cdf(A))
 
-def infection_test():
+def transmit_test():
     inf.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
@@ -116,10 +117,26 @@ def generator_test(tsteps):
     log.debug('GENERATOR')
     G=sim.Params.infectious_generator()
     G.send(None)
+    dt=sim.Params.sim_tstep
     for i in range(tsteps):
-        G.send(sim.Params.sim_tstep)
+        G.send(dt)
         n=next(G)
         log.debug(n)
+
+def reinfection_test(n_tsteps=5):
+    sim.log.setLevel(logging.DEBUG)
+    gg=[]
+    add_reference(gg)
+    add_mutant(gg)
+    i=inf.Infection(gg)
+    t=0
+    dt=21
+    for _ in range(n_tsteps):
+        txs=i.update(dt,0.1)
+        for tx in txs:
+            i.add_infection(tx)
+        log.debug('t=%d\n%s'%(t,str(i)))
+        t+=dt
 
 def simulation_test():
     sim.log.setLevel(logging.DEBUG)
@@ -161,10 +178,11 @@ if __name__ == '__main__':
     #plot_chokepoints()
     #accumulate_test()
     #poisson_test(0.9,100)
-    #infection_test()
+    #transmit_test()
+    #reinfection_test()
 
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
-    #generator_test(tsteps=5)
-    simulation_test()
+    #generator_test(tsteps=15)
+    #simulation_test()
     #migration_test()

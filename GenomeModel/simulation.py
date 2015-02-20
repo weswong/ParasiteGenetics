@@ -48,7 +48,11 @@ class Params:
 
     @classmethod
     def infectiousness(cls,t):
-        return 0 if t<cls.incubation else 0.05+0.8*math.exp(-t/200.)
+        if t<cls.incubation:
+            return 0
+        else:
+            mean_prob=0.8*math.exp(-t/50.)+0.05*math.exp(-t/300.)
+            return min(1.0,max(0,mean_prob+random.normalvariate(0,0.1)))
 
     @classmethod
     def infectious_generator(cls,t=0):
@@ -58,7 +62,8 @@ class Params:
 
     @staticmethod
     def get_infection_duration():
-        return random.uniform(100,300)
+        # Maire et al. (2006)
+        return random.lognormvariate(5.13,0.8)
 
     # mutation_prob = ??       # per day, per position
 

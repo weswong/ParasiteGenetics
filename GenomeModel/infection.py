@@ -97,9 +97,8 @@ class Infection:
     def from_random(cls,n_clones=1):
         return cls([gn.Genome.from_allele_frequencies() for _ in range(n_clones)])
 
-    def set_infection_timers(self):
-        self.infectiousness=sim.Params.infectious_generator(t=0)
-        # TODO: on reinfection don't need incubation
+    def set_infection_timers(self,t=0):
+        self.infectiousness=sim.Params.infectious_generator(t)
         self.infectiousness.send(None)
         self.infection_timer=sim.Params.get_infection_duration()
 
@@ -149,4 +148,4 @@ class Infection:
     def add_infection(self,inf):
         self.genomes.extend(inf.genomes)
         self.genomes=gn.distinct(self.genomes)
-        self.set_infection_timers()
+        self.set_infection_timers(t=sim.Params.incubation)
