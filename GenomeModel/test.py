@@ -83,10 +83,14 @@ def infection_test():
     i.transmit()
 
 def sample_test(M,N,n_tests):
+    from collections import Counter
+    all_counts=Counter()
     for _ in range(n_tests):
         log.debug('Choosing %d from %d',M,N)
         chosen=pop.choose_without_replacement(M,N)
+        all_counts.update(chosen)
         log.debug(chosen)
+    log.debug(all_counts)
 
 def population_test(tsteps):
     inf.log.setLevel(logging.DEBUG)
@@ -151,8 +155,8 @@ if __name__ == '__main__':
     #accumulate_test()
     #infection_test()
 
-    #sample_test(M=5,N=10,n_tests=10)
+    sample_test(M=2,N=5,n_tests=1000)
     #population_test(tsteps=2)
     #generator_test(tsteps=5)
     #simulation_test()
-    migration_test()
+    #migration_test()

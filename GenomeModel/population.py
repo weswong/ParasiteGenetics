@@ -17,7 +17,7 @@ def choose_without_replacement(M,N):
         return range(M)
     chosen_idxs=set()
     for j in range(N-M,N):
-        t = random.randint(0,j-1)
+        t = random.randint(0,j)
         idx = t if t not in chosen_idxs else j
         chosen_idxs.add(idx)
     return list(chosen_idxs)
