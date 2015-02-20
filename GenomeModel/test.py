@@ -87,10 +87,17 @@ def sample_test(M,N,n_tests):
     all_counts=Counter()
     for _ in range(n_tests):
         log.debug('Choosing %d from %d',M,N)
-        chosen=pop.choose_without_replacement(M,N)
+        #chosen=pop.choose_without_replacement(M,N)
+        chosen=pop.choose_with_replacement(M,N)
         all_counts.update(chosen)
         log.debug(chosen)
     log.debug(all_counts)
+
+def poisson_test(rate,n_tests):
+    N=[]
+    for _ in range(n_tests):
+        N.append(inf.poissonRandom(rate))
+    log.debug(N)
 
 def population_test(tsteps):
     inf.log.setLevel(logging.DEBUG)
@@ -129,15 +136,15 @@ def migration_test():
     sim.Params.sim_duration = 63
     sim.Demographics.populations = {
         'Test1' : {
-            'n_humans' : 1,
-            'n_infections' : 1,
+            'n_humans' : 10,
+            'n_infections' : 2,
             'vectorial_capacity' : sim.annual_cycle(0,coeff=0),
             'migration_rates' : {'Test2':0.1},
         },
         'Test2' : {
-            'n_humans' : 1,
+            'n_humans' : 10,
             'n_infections' : 0,
-            'vectorial_capacity' : sim.annual_cycle(0.3,coeff=0),
+            'vectorial_capacity' : sim.annual_cycle(0.1,coeff=0),
             'migration_rates' : {'Test1':0},
         }
     }
@@ -153,10 +160,11 @@ if __name__ == '__main__':
 
     #plot_chokepoints()
     #accumulate_test()
+    #poisson_test(0.9,100)
     #infection_test()
 
-    sample_test(M=2,N=5,n_tests=1000)
+    #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=5)
     #simulation_test()
-    #migration_test()
+    migration_test()

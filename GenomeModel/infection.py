@@ -1,3 +1,4 @@
+import math
 import random
 import itertools
 import genome as gn
@@ -29,6 +30,23 @@ def accumulate_cdf(iterable):
         cdf.append(subtotal)
     cdf[-1]=1.0
     return cdf
+
+def nextTime(rateParameter):
+    if rateParameter<=0:
+        raise Exception('Cannot calculate next time from zero rate.')
+    return -math.log(1.0 - random.random()) / rateParameter
+
+def poissonRandom(rateParameter):
+    if rateParameter<=0:
+        return 0
+    sumTime=0
+    N=0
+    while True:
+        sumTime+=nextTime(rateParameter)
+        if sumTime>1:
+            break
+        N+=1
+    return N
 
 def weighted_choice(cumwts):
     R = random.random()
@@ -90,13 +108,11 @@ class Infection:
         log.debug('infection_timer=%d',self.infection_timer)
         self.migration.update(dt)
         self.infectiousness.send(dt)
-        transmit_prob = vectorial_capacity*dt*next(self.infectiousness)
-        log.debug('transmit_prob=%0.2f',transmit_prob)
-        transmit=[]
-        if random.random() < transmit_prob:
-            transmit=self.transmit()
-            # TODO: allow for more than one transmission event per timestep!
-        return transmit
+        transmit_rate = vectorial_capacity*dt*next(self.infectiousness)
+        n_transmit=poissonRandom(transmit_rate)
+        log.debug('transmit_rate=%0.2f  n_transmit=%d',transmit_rate,n_transmit)
+        transmits=[self.transmit() for _ in range(n_transmit)]
+        return transmits
 
     def transmit(self):
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()

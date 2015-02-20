@@ -7,12 +7,19 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+def choose_with_replacement(M,N):
+    choose = random.choice
+    indices = range(N)
+    return [choose(indices) for _ in range(M)]
+
 def choose_without_replacement(M,N):
     '''
     O(M) in choose M from N scenario,
     which is much faster for typical use case
     than random.sample, which is O(N)
     '''
+    if M>N:
+        raise Exception('Cannot sample %d from %d without replacement',(M,N))
     if M==N:
         return range(M)
     chosen_idxs=set()
@@ -79,7 +86,7 @@ class Population:
         n_infections=len(infections)
         log.debug('Add %d infections:',n_infections)
         log.debug('\n\n'.join([str(i) for i in infections]))
-        idxs=choose_without_replacement(n_infections,self.n_humans)
+        idxs=choose_with_replacement(n_infections,self.n_humans)
         log.debug('Selected individual indices: %s',idxs)
         for idx,infection in zip(idxs,infections):
             if idx<len(self.infections):
@@ -94,9 +101,9 @@ class Population:
         transmissions=[]
         V=self.vectorial_capacity(self.parent.day)
         for iid,i in self.infections.items():
-            transmit=i.update(dt,V)
-            if transmit:
-                transmissions.append(transmit)
+            transmits=i.update(dt,V)
+            if transmits:
+                transmissions.extend(transmits)
             if i.infection_timer<=0:
                 expired=self.infections.pop(iid)
             if i.migration.in_days<=0:
