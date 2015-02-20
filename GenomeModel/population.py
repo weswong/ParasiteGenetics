@@ -2,7 +2,6 @@ import random
 import itertools
 import genome as gn
 import infection as inf
-import simulation as sim
 
 import logging
 log = logging.getLogger(__name__)
@@ -23,28 +22,58 @@ def choose_without_replacement(M,N):
         chosen_idxs.add(idx)
     return list(chosen_idxs)
 
-class Population():
+class MigrationInfo:
+    def __init__(self,rates):
+        self.destinations=rates.keys()
+        self.relative_rates=inf.accumulate_cdf(rates.values())
+        self.total_rate=sum(rates.values())
+
+    def __str__(self):
+        s  = 'destinations=%s: '  % self.destinations
+        s += 'relative rates=%s ' % self.relative_rates
+        s += 'total_rate=%f '     % self.total_rate
+        return s
+
+    def next_migration(self):
+        if not self.total_rate:
+            return inf.MigratingIndividual() # nowhere to migrate
+        in_days=random.expovariate(self.total_rate)
+        destination=self.destinations[inf.weighted_choice(self.relative_rates)]
+        return inf.MigratingIndividual(in_days, destination)
+
+class Population:
     '''
     An object containing a list of infections and their dynamics
     '''
 
-    def __init__(self, id,
+    def __init__(self, id, parent,
                  n_humans,
                  n_infections=0,
                  vectorial_capacity=lambda t:0.05,
                  migration_rates={}):
         self.id=id
-        self.n_humans=n_humans
-        self.infections=[inf.Infection.from_random() for _ in range(n_infections)]
+        self.parent=parent
         self.vectorial_capacity=vectorial_capacity
-        self.migration_rates=migration_rates
+        self.migration_info=MigrationInfo(migration_rates)
+        self.n_humans=n_humans
+        self.infections={}
+        for _ in range(n_infections):
+            i=inf.Infection.from_random()
+            self.add_new_infection(i)
         log.debug(self)
 
     def __repr__(self):
-        s  = '%s: ' % self.id
-        s += 'humans=%d ' % self.n_humans
+        return str(self.id)
+
+    def __str__(self):
+        s  = '%s: '           % self.id
+        s += 'humans=%d '     % self.n_humans
         s += 'infections=%d ' % len(self.infections)
         return s
+
+    def add_new_infection(self,infection):
+        infection.migration=self.migration_info.next_migration()
+        self.infections[infection.id]=infection
 
     def add_infections(self,infections):
         n_infections=len(infections)
@@ -54,21 +83,39 @@ class Population():
         log.debug('Selected individual indices: %s',idxs)
         for idx,infection in zip(idxs,infections):
             if idx<len(self.infections):
-                self.infections[idx].add_infection(infection)
-                log.debug('Merged strains (idx=%d):\n%s',idx,self.infections[idx])
+                i=self.infections.values()[idx]
+                i.add_infection(infection)
+                log.debug('Merged strains (idx=%d, id=%d):\n%s',idx,i.id,i)
             else:
                 log.debug('New infected individual:\n%s',infection)
-                self.infections.append(infection)
+                self.add_new_infection(infection)
 
     def update(self,dt):
         transmissions=[]
-        V=self.vectorial_capacity(sim.Simulation.day)
-        #log.debug('Vectorial capacity = %0.2f',V)
-        for i in self.infections:
+        V=self.vectorial_capacity(self.parent.day)
+        for iid,i in self.infections.items():
             transmit=i.update(dt,V)
             if transmit:
                 transmissions.append(transmit)
+            if i.infection_timer<=0:
+                expired=self.infections.pop(iid)
+            if i.migration.in_days<=0:
+                emigrant=self.infections.pop(iid)
+                self.transmit_emigrant(emigrant)
         if transmissions:
             self.add_infections(transmissions)
-        self.infections[:] = [i for i in self.infections if i.infection_timer>0]
         log.debug('%s vectorial capacity=%0.2f',self,V)
+        # N.B. this line doesn't report currently emigrating
+        #      who are held in limbo by the Simulation object
+        #      until being redistributed at end of update()
+
+    def transmit_emigrant(self,emigrant):
+        src_pop,dest_pop=self.id,emigrant.migration.destination
+        self.parent.migrants[dest_pop].append((emigrant,src_pop))
+        self.n_humans-=1
+
+    def receive_immigrant(self,immigrant,src_pop):
+        immigrant.migration=self.migration_info.next_migration()
+        # TODO: extend random migration to round-trip concepts using src_pop
+        self.infections[immigrant.id]=immigrant
+        self.n_humans+=1

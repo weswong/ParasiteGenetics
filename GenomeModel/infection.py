@@ -19,6 +19,39 @@ def sample_n_hepatocytes():
     # ln(5)~=1.6, ln(2.7)~=1
     return max(1,int(random.lognormvariate(mu=1.6,sigma=0.8)))
 
+def accumulate_cdf(iterable):
+    cdf,subtotal=[],0
+    norm=float(sum(iterable))
+    if not norm:
+        return []
+    for it in iterable:
+        subtotal += it/norm
+        cdf.append(subtotal)
+    cdf[-1]=1.0
+    return cdf
+
+def weighted_choice(cumwts):
+    R = random.random()
+    idx=sum(itertools.takewhile(bool, (cw < R for cw in cumwts)))
+    return idx
+
+class MigratingIndividual:
+    def __init__(self,in_days=[],destination=[]):
+        self.in_days=in_days
+        self.destination=destination
+
+    def __str__(self):
+        s  = 'destination=%s: ' % self.destination
+        s += 'in_days=%f '      % self.in_days
+        return s
+
+    def update(self,dt):
+        if self.in_days:
+            self.in_days -= dt
+
+    def migrating(self):
+        return True if self.in_days and self.in_days<=0 else False
+
 class Infection:
     '''
     An infected individual with one or more parasite strains,
@@ -34,8 +67,12 @@ class Infection:
         self.set_infection_timers()
         self.genomes=genomes
         log.debug('%s', self)
+        self.migration=MigratingIndividual()
 
     def __repr__(self):
+        return str(self.id)
+
+    def __str__(self):
         return '\n'.join([str(g) for g in self.genomes])
 
     @classmethod
@@ -44,18 +81,21 @@ class Infection:
 
     def set_infection_timers(self):
         self.infectiousness=sim.Params.infectious_generator(t=0)
+        # TODO: on reinfection don't need incubation
         self.infectiousness.send(None)
         self.infection_timer=sim.Params.get_infection_duration()
 
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         log.debug('infection_timer=%d',self.infection_timer)
+        self.migration.update(dt)
         self.infectiousness.send(dt)
         transmit_prob = vectorial_capacity*dt*next(self.infectiousness)
         log.debug('transmit_prob=%0.2f',transmit_prob)
         transmit=[]
         if random.random() < transmit_prob:
             transmit=self.transmit()
+            # TODO: allow for more than one transmission event per timestep!
         return transmit
 
     def transmit(self):
@@ -67,7 +107,7 @@ class Infection:
         sporozoite_strains=[]
         for g1,g2 in self.sample_gametocyte_pairs(n_ooc):
             meiotic_products=gn.meiosis(g1,g2)
-            log.debug(meiotic_products)
+            log.debug([str(mp) for mp in meiotic_products])
             sporozoite_strains.extend(meiotic_products)
         hepatocytes=[random.choice(sporozoite_strains) for _ in range(n_hep)]
         return Infection(gn.distinct(hepatocytes))
@@ -76,25 +116,16 @@ class Infection:
         pairs=[]
         w=self.gametocyte_strain_cdf()
         for _ in range(N):
-            pairs.append([self.weighted_choice(w),self.weighted_choice(w)])
+            pairs.append([self.select_strain(w),self.select_strain(w)])
         return pairs
 
-    def weighted_choice(self, cumwts):
-        R = random.random()
-        idx=sum(itertools.takewhile(bool, (cw < R for cw in cumwts)))
-        return self.genomes[idx]
+    def select_strain(self,cumwts):
+        return self.genomes[weighted_choice(cumwts)]
 
     def gametocyte_strain_cdf(self):
         # TODO: something more skewed
         #       to account for blood-stage dynamics
-        total=0
-        cdf=[]
-        n_strains=self.n_strains()
-        for _ in range(n_strains):
-            total += 1.0/n_strains
-            cdf.append(total)
-        cdf[-1]=1.0
-        return cdf
+        return accumulate_cdf([1]*self.n_strains())
 
     def n_strains(self):
         return len(self.genomes)

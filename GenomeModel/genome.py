@@ -145,6 +145,9 @@ class SNP:
         self.bin=bin
 
     def __repr__(self):
+        return str(self.chromosome,self.position,self.bin)
+
+    def __str__(self):
         return 'SNP'+str((self.chromosome,self.position,self.bin))
 
 class Genome:
@@ -163,6 +166,9 @@ class Genome:
         log.debug('%s', self)
 
     def __repr__(self):
+        return str(self.id)
+
+    def __str__(self):
         return self.display_barcode()
         #return self.display_genome()
 

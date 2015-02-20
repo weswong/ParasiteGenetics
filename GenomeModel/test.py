@@ -21,6 +21,7 @@ def add_random(genomes,N):
     genomes+=[gn.Genome.from_allele_frequencies() for _ in range(N)]
 
 def init_test():
+    gn.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
     add_mutant(gg)
@@ -32,6 +33,7 @@ def SNP_test():
         log.debug('Chrom %d (length %d): SNP at position %d' % (c,len(g[c]),b))
 
 def meiosis_test(N):
+    gn.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
     add_mutant(gg)
@@ -67,6 +69,11 @@ def plot_chokepoints():
 
     plt.show()
 
+def accumulate_test():
+    #A=[random.random() for _ in range(20)]
+    A=[1]*random.randint(1,10)
+    print(inf.accumulate_cdf(A))
+
 def infection_test():
     inf.log.setLevel(logging.DEBUG)
     gg=[]
@@ -84,11 +91,11 @@ def sample_test(M,N,n_tests):
 def population_test(tsteps):
     inf.log.setLevel(logging.DEBUG)
     pop.log.setLevel(logging.DEBUG)
-    node_params={'id':1,'n_humans':10,'n_infections':5}
-    p=pop.Population(**node_params)
+    pop_params={'id':1,'n_humans':10,'n_infections':5}
+    p=pop.Population(**pop_params)
     for tstep in range(tsteps):
         transmitted_infections=[]
-        for i in p.infections:
+        for i in p.infections.values():
             if random.random() < 0.5:
                 transmitted_infections.append(i.transmit())
         p.add_infections(transmitted_infections)
@@ -111,6 +118,28 @@ def simulation_test():
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 
+def migration_test():
+    sim.log.setLevel(logging.DEBUG)
+    pop.log.setLevel(logging.DEBUG)
+    #inf.log.setLevel(logging.DEBUG)
+    sim.Params.sim_duration = 63
+    sim.Demographics.populations = {
+        'Test1' : {
+            'n_humans' : 1,
+            'n_infections' : 1,
+            'vectorial_capacity' : sim.annual_cycle(0,coeff=0),
+            'migration_rates' : {'Test2':0.1},
+        },
+        'Test2' : {
+            'n_humans' : 1,
+            'n_infections' : 0,
+            'vectorial_capacity' : sim.annual_cycle(0.3,coeff=0),
+            'migration_rates' : {'Test1':0},
+        }
+    }
+    s=sim.Simulation()
+    s.run()
+
 if __name__ == '__main__':
     gn.initializeSNPs('barcode')
 
@@ -119,9 +148,11 @@ if __name__ == '__main__':
     #meiosis_test(1)
 
     #plot_chokepoints()
+    #accumulate_test()
     #infection_test()
 
     #sample_test(M=5,N=10,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=5)
-    simulation_test()
+    #simulation_test()
+    migration_test()
