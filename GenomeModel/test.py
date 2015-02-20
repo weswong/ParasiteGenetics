@@ -73,7 +73,7 @@ def plot_chokepoints():
 def accumulate_test():
     #A=[random.random() for _ in range(20)]
     A=[1]*random.randint(1,10)
-    print(inf.accumulate_cdf(A))
+    print(utils.accumulate_cdf(A))
 
 def transmit_test():
     inf.log.setLevel(logging.DEBUG)
@@ -88,8 +88,8 @@ def sample_test(M,N,n_tests):
     all_counts=Counter()
     for _ in range(n_tests):
         log.debug('Choosing %d from %d',M,N)
-        #chosen=pop.choose_without_replacement(M,N)
-        chosen=pop.choose_with_replacement(M,N)
+        #chosen=utils.choose_without_replacement(M,N)
+        chosen=utils.choose_with_replacement(M,N)
         all_counts.update(chosen)
         log.debug(chosen)
     log.debug(all_counts)
@@ -97,7 +97,7 @@ def sample_test(M,N,n_tests):
 def poisson_test(rate,n_tests):
     N=[]
     for _ in range(n_tests):
-        N.append(inf.poissonRandom(rate))
+        N.append(utils.poissonRandom(rate))
     log.debug(N)
 
 def population_test(tsteps):
@@ -184,5 +184,5 @@ if __name__ == '__main__':
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=15)
-    #simulation_test()
+    simulation_test()
     #migration_test()

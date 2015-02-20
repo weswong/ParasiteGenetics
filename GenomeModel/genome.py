@@ -8,6 +8,8 @@ logging.basicConfig(format='%(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+import utils
+
 bp_per_morgan = 1.5e6
 bp_per_Mbp    = 1e6
 
@@ -78,13 +80,6 @@ def display_bit(b):
     #return str(b)
     return '*' if b else '-'
 
-def pairwise(l):
-    "l -> (l0,l1), (l2,l3), (l4, l5), ..."
-    if len(l) % 2:
-        l.append(None)
-    a = iter(l)
-    return itertools.izip(a, a)
-
 def get_crossover_points(chrom,bp_per_morgan=bp_per_morgan):
     next_point=0
     xpoints=[]
@@ -101,7 +96,7 @@ def crossover(c1,c2,xpoints):
     c3,c4=c1[:],c2[:]
     if not xpoints:
         return c3,c4
-    for l1,l2 in pairwise(xpoints):
+    for l1,l2 in utils.pairwise(xpoints):
         c3[l1:l2], c4[l1:l2] = c4[l1:l2], c3[l1:l2]
     return c3,c4
 

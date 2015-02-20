@@ -29,13 +29,13 @@ class Demographics:
             'n_humans' : 100,
             'n_infections' : 0,
             'vectorial_capacity' : annual_cycle(0.03,0.005,4),
-            'migration_rates' : {'Test2':0.1},
+            'migration_rates' : {'Test2':0.01},
         },
         'Test2' : {
             'n_humans' : 100,
             'n_infections' : 10,
             'vectorial_capacity' : annual_cycle(0.01,coeff=0),
-            'migration_rates' : {'Test1':0.1},
+            'migration_rates' : {'Test1':0.01},
         }
     }
 

@@ -1,52 +1,14 @@
 import random
 import itertools
-import genome as gn
-import infection as inf
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
-def choose_with_replacement(M,N):
-    choose = random.choice
-    indices = range(N)
-    return [choose(indices) for _ in range(M)]
-
-def choose_without_replacement(M,N):
-    '''
-    O(M) in choose M from N scenario,
-    which is much faster for typical use case
-    than random.sample, which is O(N)
-    '''
-    if M>N:
-        raise Exception('Cannot sample %d from %d without replacement',(M,N))
-    if M==N:
-        return range(M)
-    chosen_idxs=set()
-    for j in range(N-M,N):
-        t = random.randint(0,j)
-        idx = t if t not in chosen_idxs else j
-        chosen_idxs.add(idx)
-    return list(chosen_idxs)
-
-class MigrationInfo:
-    def __init__(self,rates):
-        self.destinations=rates.keys()
-        self.relative_rates=inf.accumulate_cdf(rates.values())
-        self.total_rate=sum(rates.values())
-
-    def __str__(self):
-        s  = 'destinations=%s: '  % self.destinations
-        s += 'relative rates=%s ' % self.relative_rates
-        s += 'total_rate=%f '     % self.total_rate
-        return s
-
-    def next_migration(self):
-        if not self.total_rate:
-            return inf.MigratingIndividual() # nowhere to migrate
-        in_days=random.expovariate(self.total_rate)
-        destination=self.destinations[inf.weighted_choice(self.relative_rates)]
-        return inf.MigratingIndividual(in_days, destination)
+import utils
+import genome as gn
+import infection as inf
+from migration import MigrationInfo
 
 class Population:
     '''
@@ -86,7 +48,7 @@ class Population:
         n_infections=len(infections)
         log.debug('Add %d infections:',n_infections)
         log.debug('\n\n'.join([str(i) for i in infections]))
-        idxs=choose_with_replacement(n_infections,self.n_humans)
+        idxs=utils.choose_with_replacement(n_infections,self.n_humans)
         log.debug('Selected individual indices: %s',idxs)
         for idx,infection in zip(idxs,infections):
             if idx<len(self.infections):

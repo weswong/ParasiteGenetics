@@ -1,12 +1,15 @@
 import math
 import random
 import itertools
-import genome as gn
-import simulation as sim
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+import utils
+import genome as gn
+import simulation as sim
+from migration import MigratingIndividual
 
 max_transmit_strains=10
 
@@ -19,56 +22,6 @@ def sample_n_hepatocytes():
     # Bejon et al. "Calculation of Liver-to-Blood Inocula..." (2005)
     # ln(5)~=1.6, ln(2.7)~=1
     return max(1,int(random.lognormvariate(mu=1.6,sigma=0.8)))
-
-def accumulate_cdf(iterable):
-    cdf,subtotal=[],0
-    norm=float(sum(iterable))
-    if not norm:
-        return []
-    for it in iterable:
-        subtotal += it/norm
-        cdf.append(subtotal)
-    cdf[-1]=1.0
-    return cdf
-
-def nextTime(rateParameter):
-    if rateParameter<=0:
-        raise Exception('Cannot calculate next time from zero rate.')
-    return -math.log(1.0 - random.random()) / rateParameter
-
-def poissonRandom(rateParameter):
-    if rateParameter<=0:
-        return 0
-    sumTime=0
-    N=0
-    while True:
-        sumTime+=nextTime(rateParameter)
-        if sumTime>1:
-            break
-        N+=1
-    return N
-
-def weighted_choice(cumwts):
-    R = random.random()
-    idx=sum(itertools.takewhile(bool, (cw < R for cw in cumwts)))
-    return idx
-
-class MigratingIndividual:
-    def __init__(self,in_days=[],destination=[]):
-        self.in_days=in_days
-        self.destination=destination
-
-    def __str__(self):
-        s  = 'destination=%s: ' % self.destination
-        s += 'in_days=%f '      % self.in_days
-        return s
-
-    def update(self,dt):
-        if self.in_days:
-            self.in_days -= dt
-
-    def migrating(self):
-        return True if self.in_days and self.in_days<=0 else False
 
 class Infection:
     '''
@@ -108,7 +61,7 @@ class Infection:
         self.migration.update(dt)
         self.infectiousness.send(dt)
         transmit_rate = vectorial_capacity*dt*next(self.infectiousness)
-        n_transmit=poissonRandom(transmit_rate)
+        n_transmit=utils.poissonRandom(transmit_rate)
         log.debug('transmit_rate=%0.2f  n_transmit=%d',transmit_rate,n_transmit)
         transmits=[self.transmit() for _ in range(n_transmit)]
         return transmits
@@ -135,12 +88,12 @@ class Infection:
         return pairs
 
     def select_strain(self,cumwts):
-        return self.genomes[weighted_choice(cumwts)]
+        return self.genomes[utils.weighted_choice(cumwts)]
 
     def gametocyte_strain_cdf(self):
         # TODO: something more skewed
         #       to account for blood-stage dynamics
-        return accumulate_cdf([1]*self.n_strains())
+        return utils.accumulate_cdf([1]*self.n_strains())
 
     def n_strains(self):
         return len(self.genomes)
