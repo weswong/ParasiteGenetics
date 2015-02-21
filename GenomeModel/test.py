@@ -1,13 +1,16 @@
 import math
 import random
-import genome as gn
-import infection as inf
-import population as pop
-import simulation as sim
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+import utils
+import genome as gn
+import infection as inf
+import population as pop
+import simulation as sim
+import report
 
 def add_reference(genomes):
     log.debug('REFERENCE')
@@ -32,6 +35,13 @@ def SNP_test():
     g=gn.reference_genome()
     for c,b,f in gn.iterate_SNPs():
         log.debug('Chrom %d (length %d): SNP at position %d' % (c,len(g[c]),b))
+
+def bitstring_test():
+    A=[1 if random.random()<0.5 else 0 for _ in range(500)]
+    s=''.join([str(b) for b in A])
+    bs=int(s,2)
+    bs2=sum(1<<i for i, b in enumerate(reversed(A)) if b)
+    print(s,bs,bs2)
 
 def meiosis_test(N):
     gn.log.setLevel(logging.DEBUG)
@@ -103,7 +113,7 @@ def poisson_test(rate,n_tests):
 def population_test(tsteps):
     inf.log.setLevel(logging.DEBUG)
     pop.log.setLevel(logging.DEBUG)
-    pop_params={'id':1,'n_humans':10,'n_infections':5}
+    pop_params={'id':1,'parent':None,'n_humans':10,'n_infections':5}
     p=pop.Population(**pop_params)
     for tstep in range(tsteps):
         transmitted_infections=[]
@@ -143,6 +153,7 @@ def simulation_test():
     pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
+    s.add_report(report.SimulationReport)
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 
@@ -172,6 +183,7 @@ if __name__ == '__main__':
     gn.initializeSNPs('barcode')
 
     #SNP_test()
+    #bitstring_test()
     #init_test()
     #meiosis_test(1)
 
@@ -184,5 +196,6 @@ if __name__ == '__main__':
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=15)
-    simulation_test()
     #migration_test()
+
+    simulation_test()

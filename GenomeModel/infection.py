@@ -40,9 +40,6 @@ class Infection:
         log.debug('%s', self)
         self.migration=MigratingIndividual()
 
-    def __repr__(self):
-        return str(self.id)
-
     def __str__(self):
         return '\n'.join([str(g) for g in self.genomes])
 

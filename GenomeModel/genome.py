@@ -125,9 +125,6 @@ def distinct(genomes):
             distinct.append(g)
     return distinct
 
-def as_long(G):
-    return int(''.join((str(b) for b in G)),2)
-
 class SNP:
     '''
     The properties of a single nucleotide polymorphism
@@ -140,10 +137,10 @@ class SNP:
         self.bin=bin
 
     def __repr__(self):
-        return str(self.chromosome,self.position,self.bin)
+        return 'genome.SNP(self.chromosome,self.position)'
 
-    def __str__(self):
-        return 'SNP'+str((self.chromosome,self.position,self.bin))
+    def to_tuple(self):
+        return (self.chromosome,self.position)
 
 class Genome:
     '''
@@ -159,9 +156,6 @@ class Genome:
         log.debug('Genome: id=%d', self.id)
         self.genome=genome
         log.debug('%s', self)
-
-    def __repr__(self):
-        return str(self.id)
 
     def __str__(self):
         return self.display_barcode()
@@ -189,11 +183,14 @@ class Genome:
             genome[c][b]=s
         return cls(genome)
 
+    def barcode(self):
+        return [self.genome[c][b] for c,b,f in iterate_SNPs()]
+
+    def barcode_as_long(self):
+        return sum(1<<i for i,b in enumerate(reversed(self.barcode())) if b)
+
     def display_barcode(self):
-        snp_values=[]
-        for c,b,f in iterate_SNPs():
-            snp_values.append(self.genome[c][b])
-        return ''.join([display_bit(b) for b in snp_values])
+        return ''.join([display_bit(b) for b in self.barcode()])
 
     def display_genome(self):
         s=[]

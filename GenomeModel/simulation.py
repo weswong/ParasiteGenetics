@@ -41,10 +41,12 @@ class Demographics:
 
 class Params:
 
+    working_dir      = 'simulations'
+    random_seed      = 8675309
+
     sim_duration     = 365       # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
-    random_seed      = 8675309
 
     @classmethod
     def infectiousness(cls,t):
@@ -76,10 +78,13 @@ class Simulation:
         self.populations={ k:pop.Population(k,self,**v) \
                            for k,v in Demographics.populations.items() }
         self.migrants=defaultdict(list)
+        self.reports=[]
 
     def run(self):
         for t in range(Params.sim_duration/Params.sim_tstep):
             self.update()
+        for r in self.reports:
+            r.write(Params.working_dir)
 
     def update(self,dt=Params.sim_tstep):
         self.day+=dt
@@ -87,6 +92,8 @@ class Simulation:
         for p in self.populations.values():
             p.update(dt)
         self.resolve_migration()
+        for r in self.reports:
+            r.update()
 
     def resolve_migration(self):
         for dest,emigrant_and_src_list in self.migrants.items():
@@ -94,3 +101,11 @@ class Simulation:
                 log.debug('Migrating to %s: infection %s from %s',dest,*emigrant_and_src)
                 self.populations[dest].receive_immigrant(*emigrant_and_src)
         self.migrants.clear()
+
+    def add_report(self,report_class):
+        self.reports.append(report_class(self))
+
+    def iterate_infections(self):
+        for pid,p in self.populations.items():
+            for iid,i in p.infections.items():
+                yield pid,iid,i

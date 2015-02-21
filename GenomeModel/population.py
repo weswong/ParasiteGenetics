@@ -31,9 +31,6 @@ class Population:
             self.add_new_infection(i)
         log.debug(self)
 
-    def __repr__(self):
-        return str(self.id)
-
     def __str__(self):
         s  = '%s: '           % self.id
         s += 'humans=%d '     % self.n_humans
