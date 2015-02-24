@@ -59,6 +59,7 @@ class Population:
     def update(self,dt):
         transmissions=[]
         V=self.vectorial_capacity(self.parent.day)
+        log.info('%s vectorial capacity=%0.2f',self,V)
         for iid,i in self.infections.items():
             transmits=i.update(dt,V)
             transmissions.extend(transmits)
@@ -69,10 +70,6 @@ class Population:
                 self.transmit_emigrant(emigrant)
         if transmissions:
             self.add_infections(transmissions)
-        log.debug('%s vectorial capacity=%0.2f',self,V)
-        # N.B. this line doesn't report currently emigrating
-        #      who are held in limbo by the Simulation object
-        #      until being redistributed at end of update()
 
     def transmit_emigrant(self,emigrant):
         src_pop,dest_pop=self.id,emigrant.migration.destination

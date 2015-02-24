@@ -19,7 +19,7 @@ Usage:
 def genome_speed_test():
     gn.initializeSNPs('barcode')
 
-    genomes=[gn.Genome.from_allele_frequencies() for _ in range(100)]
+    genomes=[gn.Genome.from_allele_freq() for _ in range(100)]
 
     for _ in range(100):
         g1,g2 = random.sample(genomes,2)

@@ -23,7 +23,10 @@ class SimulationReport():
         log.debug('Report updated at t=%d',self.parent.day)
         today=self.data['data'][self.parent.day]=defaultdict(list)
         for pid,iid,i in self.parent.iterate_infections():
-            today[pid].append([g.barcode_as_long() for g in i.genomes])
+            if i:
+                today[pid].append([g.barcode_as_long() for g in i.genomes])
+            else:
+                today[pid].append([])
 
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)

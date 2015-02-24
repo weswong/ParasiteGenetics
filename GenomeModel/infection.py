@@ -45,7 +45,7 @@ class Infection:
 
     @classmethod
     def from_random(cls,n_clones=1):
-        return cls([gn.Genome.from_allele_frequencies() for _ in range(n_clones)])
+        return cls([gn.Genome.from_allele_freq() for _ in range(n_clones)])
 
     def set_infection_timers(self,t=0):
         self.infectiousness=sim.Params.infectious_generator(t)

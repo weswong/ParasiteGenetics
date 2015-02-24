@@ -169,7 +169,7 @@ class Genome:
         return cls(reference_genome())
 
     @classmethod
-    def from_allele_frequencies(cls):
+    def from_allele_freq(cls):
         genome=reference_genome()
         for c,b,f in iterate_SNPs():
             if random.random()<f:

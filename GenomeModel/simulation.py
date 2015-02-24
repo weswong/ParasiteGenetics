@@ -26,16 +26,16 @@ class Demographics:
 
     populations = {
         'Test1' : {
-            'n_humans' : 100,
-            'n_infections' : 0,
-            'vectorial_capacity' : annual_cycle(0.03,0.005,4),
-            'migration_rates' : {'Test2':0.01},
+            'n_humans' : 500,
+            'n_infections' : 50,
+            'vectorial_capacity' : annual_cycle(0.2,0,10),
+            'migration_rates' : {'Test2':1e-4},
         },
         'Test2' : {
-            'n_humans' : 100,
-            'n_infections' : 10,
-            'vectorial_capacity' : annual_cycle(0.01,coeff=0),
-            'migration_rates' : {'Test1':0.01},
+            'n_humans' : 500,
+            'n_infections' : 220,
+            'vectorial_capacity' : annual_cycle(0.05,coeff=0),
+            'migration_rates' : {'Test1':1e-4},
         }
     }
 
@@ -44,7 +44,7 @@ class Params:
     working_dir      = 'simulations'
     random_seed      = 8675309
 
-    sim_duration     = 365       # days
+    sim_duration     = 365*5     # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
 
@@ -88,7 +88,7 @@ class Simulation:
 
     def update(self,dt=Params.sim_tstep):
         self.day+=dt
-        log.info('t=%d'%self.day)
+        log.info('\nt=%d'%self.day)
         for p in self.populations.values():
             p.update(dt)
         self.resolve_migration()
@@ -98,7 +98,8 @@ class Simulation:
     def resolve_migration(self):
         for dest,emigrant_and_src_list in self.migrants.items():
             for emigrant_and_src in emigrant_and_src_list:
-                log.debug('Migrating to %s: infection %s from %s',dest,*emigrant_and_src)
+                log.debug('Migrating to %s: infection %s from %s',
+                           dest, *emigrant_and_src)
                 self.populations[dest].receive_immigrant(*emigrant_and_src)
         self.migrants.clear()
 
@@ -107,5 +108,7 @@ class Simulation:
 
     def iterate_infections(self):
         for pid,p in self.populations.items():
+            if not p.infections:
+                yield pid,None,[]
             for iid,i in p.infections.items():
                 yield pid,iid,i

@@ -22,7 +22,7 @@ def add_mutant(genomes):
 
 def add_random(genomes,N):
     log.debug('RANDOM')
-    genomes+=[gn.Genome.from_allele_frequencies() for _ in range(N)]
+    genomes+=[gn.Genome.from_allele_freq() for _ in range(N)]
 
 def init_test():
     gn.log.setLevel(logging.DEBUG)
@@ -149,8 +149,8 @@ def reinfection_test(n_tsteps=5):
         t+=dt
 
 def simulation_test():
-    sim.log.setLevel(logging.DEBUG)
-    pop.log.setLevel(logging.DEBUG)
+    #sim.log.setLevel(logging.DEBUG)
+    #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
     s.add_report(report.SimulationReport)
