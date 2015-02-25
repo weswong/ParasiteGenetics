@@ -4,7 +4,7 @@ from collections import defaultdict
 import pandas as pd
 import matplotlib.pyplot as plt
 
-with open('../simulations/report.json') as reportfile:
+with open('simulations/report.json') as reportfile:
     report=json.loads(reportfile.read())
 
 n_infections=defaultdict(list)

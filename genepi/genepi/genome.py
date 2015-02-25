@@ -23,7 +23,7 @@ log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
 def initializeSNPs(SNP_source,bin_size=None):
     if SNP_source=='barcode':
-        import barcode
+        from snp import barcode
         Genome.SNPs=barcode.SNPs
     else:
         raise Exception("Don't recognize SNP source type: %s", SNP_source)

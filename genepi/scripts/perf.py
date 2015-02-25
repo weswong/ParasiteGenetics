@@ -1,6 +1,6 @@
 import random
 import logging as log
-import genome as gn
+import gen-epi.genome as gn
 
 '''
 Package:

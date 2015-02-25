@@ -5,12 +5,11 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-import utils
-import genome as gn
-import infection as inf
-import population as pop
-import simulation as sim
-import report
+from genepi import utils,report
+import genepi.genome as gn
+import genepi.infection as inf
+import genepi.population as pop
+import genepi.simulation as sim
 
 def add_reference(genomes):
     log.debug('REFERENCE')

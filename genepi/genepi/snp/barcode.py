@@ -1,8 +1,10 @@
-import genome as gn
+import os
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+from genepi import genome as gn
 
 allele_freqs=[ 0.7567, 0.5334, 0.9282, 0.4096,
                0.2809, 0.1045, 0.4659, 0.6340,
@@ -19,7 +21,7 @@ def positions_from_txt_table(filename,allele_freqs=[]):
     '''
     log.info('Reading SNPs from file: %s', filename)
     SNPs=[]
-    with open(filename) as f:
+    with open(os.path.join(os.path.dirname(__file__),filename)) as f:
         for content in f.readlines()[1:]:
             CHR,POS = content.split()
             snp=gn.SNP(chrom=int(CHR.split('_')[1]),
