@@ -53,11 +53,11 @@ class Infection():
 
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
-        log.debug('infection_timer=%d',self.infection_timer)
         self.infectiousness.send(dt)
         transmit_rate = vectorial_capacity*dt*next(self.infectiousness)
         n_transmit=utils.poissonRandom(transmit_rate)
-        log.debug('transmit_rate=%0.2f  n_transmit=%d',transmit_rate,n_transmit)
+        log.debug('  id=%d: infection_timer=%d  transmit_rate=%0.2f  n_transmit=%d',
+                  self.id,self.infection_timer,transmit_rate,n_transmit)
         transmits=[self.transmit() for _ in range(n_transmit)]
         return transmits
 

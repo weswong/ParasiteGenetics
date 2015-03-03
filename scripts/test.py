@@ -10,6 +10,8 @@ import genepi.genome as gn
 import genepi.infection as inf
 import genepi.population as pop
 import genepi.simulation as sim
+import genepi.human as hn
+import genepi.migration as mig
 
 def add_reference(genomes):
     log.debug('REFERENCE')
@@ -159,20 +161,23 @@ def simulation_test():
 def migration_test():
     sim.log.setLevel(logging.DEBUG)
     pop.log.setLevel(logging.DEBUG)
-    #inf.log.setLevel(logging.DEBUG)
-    sim.Params.sim_duration = 63
+    inf.log.setLevel(logging.DEBUG)
+    hn.log.setLevel(logging.DEBUG)
+    mig.log.setLevel(logging.DEBUG)
+
+    sim.Params.sim_duration = 21*6
     sim.Demographics.populations = {
-        'Test1' : {
-            'n_humans' : 10,
-            'n_infections' : 2,
-            'vectorial_capacity_fn' : sim.annual_cycle(0,coeff=0),
-            'migration_rates' : {'Test2':0.1},
-        },
-        'Test2' : {
+        'Desert' : {
             'n_humans' : 10,
             'n_infections' : 0,
+            'vectorial_capacity_fn' : sim.annual_cycle(0,coeff=0),
+            'migration_rates' : {'Bog':0.1},
+        },
+        'Bog' : {
+            'n_humans' : 10,
+            'n_infections' : 2,
             'vectorial_capacity_fn' : sim.annual_cycle(0.1,coeff=0),
-            'migration_rates' : {'Test1':0},
+            'migration_rates' : {'Desert':0.1},
         }
     }
     s=sim.Simulation()
@@ -195,6 +200,6 @@ if __name__ == '__main__':
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=15)
-    #migration_test()
+    migration_test()
 
-    simulation_test()
+    #simulation_test()

@@ -91,4 +91,5 @@ class Population:
     def receive_immigrant(self,immigrant,src_pop):
         immigrant.migration=self.migration_info.next_migration()
         # TODO: extend random migration to round-trip concepts using src_pop
+        immigrant.parent=self
         self.infecteds[immigrant.id]=immigrant

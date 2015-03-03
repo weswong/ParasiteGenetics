@@ -97,10 +97,10 @@ class Simulation:
 
     def resolve_migration(self):
         for dest,emigrant_and_src_list in self.migrants.items():
-            for emigrant_and_src in emigrant_and_src_list:
+            for (emigrant,src) in emigrant_and_src_list:
                 log.debug('Migrating to %s: infection %s from %s',
-                           dest, *emigrant_and_src)
-                self.populations[dest].receive_immigrant(*emigrant_and_src)
+                           dest,emigrant.infection,src)
+                self.populations[dest].receive_immigrant(emigrant,src)
         self.migrants.clear()
 
     def add_report(self,report_class):
