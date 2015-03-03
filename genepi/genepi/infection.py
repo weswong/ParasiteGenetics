@@ -8,8 +8,8 @@ log.setLevel(logging.INFO)
 
 import utils
 import genome as gn
+from human import HumanIndividual
 import simulation as sim
-from migration import MigratingIndividual
 
 max_transmit_strains=10
 
@@ -23,9 +23,9 @@ def sample_n_hepatocytes():
     # ln(5)~=1.6, ln(2.7)~=1
     return max(1,int(random.lognormvariate(mu=1.6,sigma=0.8)))
 
-class Infection:
+class Infection():
     '''
-    An infected individual with one or more parasite strains,
+    An infection in a human containing one or more parasite strains,
     including the dynamics of parasite propagation through
     the mosquito vector into a new human host.
     '''
@@ -38,7 +38,6 @@ class Infection:
         self.set_infection_timers()
         self.genomes=genomes
         log.debug('%s', self)
-        self.migration=MigratingIndividual()
 
     def __str__(self):
         return '\n'.join([str(g) for g in self.genomes])
@@ -55,7 +54,6 @@ class Infection:
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         log.debug('infection_timer=%d',self.infection_timer)
-        self.migration.update(dt)
         self.infectiousness.send(dt)
         transmit_rate = vectorial_capacity*dt*next(self.infectiousness)
         n_transmit=utils.poissonRandom(transmit_rate)
@@ -86,6 +84,9 @@ class Infection:
 
     def select_strain(self,cumwts):
         return self.genomes[utils.weighted_choice(cumwts)]
+
+    def expired(self):
+        return self.infection_timer<=0
 
     def gametocyte_strain_cdf(self):
         # TODO: something more skewed

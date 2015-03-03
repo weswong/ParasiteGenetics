@@ -28,13 +28,13 @@ class Demographics:
         'Test1' : {
             'n_humans' : 500,
             'n_infections' : 50,
-            'vectorial_capacity' : annual_cycle(0.2,0,10),
+            'vectorial_capacity_fn' : annual_cycle(0.2,0,10),
             'migration_rates' : {'Test2':1e-4},
         },
         'Test2' : {
             'n_humans' : 500,
             'n_infections' : 220,
-            'vectorial_capacity' : annual_cycle(0.05,coeff=0),
+            'vectorial_capacity_fn' : annual_cycle(0.05,coeff=0),
             'migration_rates' : {'Test1':1e-4},
         }
     }
@@ -108,7 +108,7 @@ class Simulation:
 
     def iterate_infections(self):
         for pid,p in self.populations.items():
-            if not p.infections:
+            if not p.infecteds:
                 yield pid,None,[]
-            for iid,i in p.infections.items():
-                yield pid,iid,i
+            for iid,i in p.infecteds.items():
+                yield pid,iid,i.infection

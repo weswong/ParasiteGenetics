@@ -165,13 +165,13 @@ def migration_test():
         'Test1' : {
             'n_humans' : 10,
             'n_infections' : 2,
-            'vectorial_capacity' : sim.annual_cycle(0,coeff=0),
+            'vectorial_capacity_fn' : sim.annual_cycle(0,coeff=0),
             'migration_rates' : {'Test2':0.1},
         },
         'Test2' : {
             'n_humans' : 10,
             'n_infections' : 0,
-            'vectorial_capacity' : sim.annual_cycle(0.1,coeff=0),
+            'vectorial_capacity_fn' : sim.annual_cycle(0.1,coeff=0),
             'migration_rates' : {'Test1':0},
         }
     }

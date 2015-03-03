@@ -1,7 +1,7 @@
 import random
 import utils
 
-class MigratingIndividual:
+class Migration:
     def __init__(self,in_days=[],destination=[]):
         self.in_days=in_days
         self.destination=destination
@@ -32,7 +32,7 @@ class MigrationInfo:
 
     def next_migration(self):
         if not self.total_rate:
-            return MigratingIndividual() # nowhere to migrate
+            return Migration() # nowhere to migrate
         in_days=random.expovariate(self.total_rate)
         destination=self.destinations[utils.weighted_choice(self.relative_rates)]
-        return MigratingIndividual(in_days, destination)
+        return Migration(in_days, destination)
