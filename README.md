@@ -1,4 +1,4 @@
-A simplified P.falciparum epidemiological model with detailed descriptions of parasite genome recombination dynamics.
+A simplified _Plasmodium falciparum_ epidemiological model with detailed descriptions of parasite genome recombination dynamics.
 
 #### Installation
 
