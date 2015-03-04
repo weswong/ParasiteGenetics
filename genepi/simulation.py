@@ -78,6 +78,7 @@ class Simulation:
         self.populations={ k:pop.Population(k,self,**v) \
                            for k,v in Demographics.populations.items() }
         self.migrants=defaultdict(list)
+        self.cohort_migrants=defaultdict(int)
         self.reports=[]
 
     def run(self):
@@ -102,6 +103,9 @@ class Simulation:
                            dest,emigrant.infection,src)
                 self.populations[dest].receive_immigrant(emigrant,src)
         self.migrants.clear()
+        for dest,n_emigrants in self.cohort_migrants.items():
+            self.populations[dest].susceptibles.n_humans+=n_emigrants
+        self.cohort_migrants.clear()
 
     def add_report(self,report_class):
         self.reports.append(report_class(self))

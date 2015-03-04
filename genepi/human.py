@@ -21,10 +21,6 @@ class HumanCohort:
         self.n_humans-=1
         return HumanIndividual(self.parent)
 
-    def update(self,dt):
-        pass
-        #TODO: cohort migration
-
 class HumanIndividual:
     '''
     An individual instance for tracking infected humans

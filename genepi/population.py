@@ -77,6 +77,7 @@ class Population:
                 # TODO: careful not to undercount or overcount migration of cleared infections
         if transmissions:
             self.add_infections(transmissions)
+        self.cohort_migration(dt) # TODO: potential small undercounting as new infecteds popped into individuals don't get chance to migrate this timestep?
 
     def vectorial_capacity(self):
         return self.vectorial_capacity_fn(self.parent.day)
@@ -87,6 +88,14 @@ class Population:
     def transmit_emigrant(self,emigrant):
         src_pop,dest_pop=self.id,emigrant.migration.destination
         self.parent.migrants[dest_pop].append((emigrant,src_pop))
+
+    def cohort_migration(self,dt):
+        mig_dest=self.migration_info.destinations_in_timestep
+        destinations=mig_dest(self.susceptibles.n_humans,dt)
+        self.susceptibles.n_humans -= len(destinations) # TODO: don't go negative?
+        for dest in destinations:
+            self.parent.cohort_migrants[dest]+=1
+        log.debug('Cohort migration from %s: %s',self.id,destinations)
 
     def receive_immigrant(self,immigrant,src_pop):
         immigrant.migration=self.migration_info.next_migration()

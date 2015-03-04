@@ -34,9 +34,15 @@ class MigrationInfo:
         s += 'total_rate=%f '     % self.total_rate
         return s
 
+    def pick_destination(self):
+        return self.destinations[utils.weighted_choice(self.relative_rates)]
+
     def next_migration(self):
         if not self.total_rate:
             return Migration() # nowhere to migrate
         in_days=random.expovariate(self.total_rate)
-        destination=self.destinations[utils.weighted_choice(self.relative_rates)]
-        return Migration(in_days, destination)
+        return Migration(in_days, self.pick_destination())
+
+    def destinations_in_timestep(self,n_humans,dt):
+        n_migrants=utils.poissonRandom(n_humans*self.total_rate*dt)
+        return [self.pick_destination() for _ in range(n_migrants)]

@@ -17,16 +17,19 @@ class SimulationReport():
         self.report_filename=report_filename
         self.parent=parent
         self.data={'SNPs':[s.to_tuple() for s in gn.Genome.SNPs],
-                   'data':{}}
+                   'genomes':{},
+                   'n_humans':defaultdict(list)}
 
     def update(self):
         log.debug('Report updated at t=%d',self.parent.day)
-        today=self.data['data'][self.parent.day]=defaultdict(list)
+        today=self.data['genomes'][self.parent.day]=defaultdict(list)
         for pid,iid,i in self.parent.iterate_infections():
             if i:
                 today[pid].append([g.barcode_as_long() for g in i.genomes])
             else:
                 today[pid].append([])
+        for pid,p in self.parent.populations.items():
+            self.data['n_humans'][pid].append(p.n_humans())
 
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)

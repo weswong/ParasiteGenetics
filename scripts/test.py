@@ -171,13 +171,13 @@ def migration_test():
             'n_humans' : 10,
             'n_infections' : 0,
             'vectorial_capacity_fn' : sim.annual_cycle(0,coeff=0),
-            'migration_rates' : {'Bog':0.1},
+            'migration_rates' : {'Bog':0.02},
         },
         'Bog' : {
             'n_humans' : 10,
             'n_infections' : 2,
             'vectorial_capacity_fn' : sim.annual_cycle(0.1,coeff=0),
-            'migration_rates' : {'Desert':0.1},
+            'migration_rates' : {'Desert':0.02},
         }
     }
     s=sim.Simulation()
@@ -200,6 +200,6 @@ if __name__ == '__main__':
     #sample_test(M=6,N=5,n_tests=10)
     #population_test(tsteps=2)
     #generator_test(tsteps=15)
-    migration_test()
+    #migration_test()
 
-    #simulation_test()
+    simulation_test()
