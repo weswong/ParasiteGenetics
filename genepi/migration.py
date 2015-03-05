@@ -1,3 +1,4 @@
+import math
 import random
 import utils
 
@@ -44,5 +45,7 @@ class MigrationInfo:
         return Migration(in_days, self.pick_destination())
 
     def destinations_in_timestep(self,n_humans,dt):
-        n_migrants=utils.poissonRandom(n_humans*self.total_rate*dt)
-        return [self.pick_destination() for _ in range(n_migrants)]
+        prob=1-math.exp(-self.total_rate*dt)
+        migrants=utils.binomialApproxRandom(n_humans,prob)
+        log.debug('(humans,prob,migrants)=(%d,%0.2f,%d)',n_humans,prob,migrants)
+        return [self.pick_destination() for _ in range(migrants)]

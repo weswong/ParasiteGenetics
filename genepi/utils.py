@@ -25,17 +25,40 @@ def nextTime(rateParameter):
         raise Exception('Cannot calculate next time from zero rate.')
     return -math.log(1.0 - random.random()) / rateParameter
 
-def poissonRandom(rateParameter):
-    if rateParameter<=0:
+def poissonRandom(lam):
+    if lam<=0:
         return 0
     sumTime=0
     N=0
     while True:
-        sumTime+=nextTime(rateParameter)
+        sumTime+=nextTime(lam)
         if sumTime>1:
             break
         N+=1
     return N
+
+def binomialApproxRandom(n,p):
+    '''
+    Small numbers: exact Binomial
+    Near edges: Poisson approximation
+    Intermediate probabilities: normal approximation
+    '''
+    if n<0 or p<0:
+        raise Exception('Binomial requires positive (n,p)=(%d,%f)'%(n,p))
+    if n==0 or p==0:
+        return 0
+    if p>1:
+        log.warning('Fixing probability %f>1.0 to one.',p)
+        return n
+    if n<10:
+        return(sum([random.random()<p for _ in range(n)]))
+    lt50pct=p<0.5
+    p_tmp = p if lt50pct else (1-p)
+    if n < 9*(1-p_tmp)/p_tmp:
+        poisson_tmp=poissonRandom(n*p_tmp)
+        return poisson_tmp if lt50pct else n-poisson_tmp
+    normal_tmp=int(round(random.gauss(mu=n*p,sigma=math.sqrt(n*p*(1-p)))))
+    return max(0,min(n,normal_tmp))
 
 def weighted_choice(cumwts):
     R = random.random()

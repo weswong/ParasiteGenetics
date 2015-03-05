@@ -54,7 +54,7 @@ class Params:
             return 0
         else:
             mean_prob=0.8*math.exp(-t/50.)+0.05*math.exp(-t/300.)
-            return min(1.0,max(0,mean_prob+random.normalvariate(0,0.1)))
+            return min(1.0,max(0,mean_prob+random.gauss(0,0.1)))
 
     @classmethod
     def infectious_generator(cls,t=0):

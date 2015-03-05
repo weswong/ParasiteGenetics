@@ -111,6 +111,12 @@ def poisson_test(rate,n_tests):
         N.append(utils.poissonRandom(rate))
     log.debug(N)
 
+def binomial_test(n,p,n_tests):
+    N=[]
+    for _ in range(n_tests):
+        N.append(utils.binomialApproxRandom(n,p))
+    log.debug(N)
+
 def population_test(tsteps):
     inf.log.setLevel(logging.DEBUG)
     pop.log.setLevel(logging.DEBUG)
@@ -183,6 +189,13 @@ def migration_test():
     s=sim.Simulation()
     s.run()
 
+def migration_destination_test(n_humans,dt):
+    from collections import Counter
+    mig.log.setLevel(logging.DEBUG)
+    mig_info=mig.MigrationInfo({'d1':0.1,'d2':0.03})
+    destinations=mig_info.destinations_in_timestep(n_humans,dt)
+    print(Counter(destinations))
+
 if __name__ == '__main__':
     gn.initializeSNPs('barcode')
 
@@ -194,6 +207,7 @@ if __name__ == '__main__':
     #plot_chokepoints()
     #accumulate_test()
     #poisson_test(0.9,100)
+    #binomial_test(n=100,p=0.9,n_tests=5)
     #transmit_test()
     #reinfection_test()
 
@@ -201,5 +215,6 @@ if __name__ == '__main__':
     #population_test(tsteps=2)
     #generator_test(tsteps=15)
     #migration_test()
+    #migration_destination_test(n_humans=100,dt=20)
 
     simulation_test()
