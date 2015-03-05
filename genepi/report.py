@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 import genome as gn
+import simulation as sim # TODO: demographics instance owned by Simulation?
 
 class SimulationReport():
     '''
@@ -17,6 +18,7 @@ class SimulationReport():
         self.report_filename=report_filename
         self.parent=parent
         self.data={'SNPs':[s.to_tuple() for s in gn.Genome.SNPs],
+                   'populations':sim.Demographics.populations.keys(),
                    'genomes':{},
                    'n_humans':defaultdict(list)}
 

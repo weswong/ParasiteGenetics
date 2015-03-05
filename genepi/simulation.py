@@ -25,17 +25,17 @@ class Demographics:
     # TODO: initialization factory
 
     populations = {
-        'Test1' : {
+        'Population #1' : {
             'n_humans' : 500,
             'n_infections' : 50,
-            'vectorial_capacity_fn' : annual_cycle(0.2,0,10),
-            'migration_rates' : {'Test2':1e-4},
+            'vectorial_capacity_fn' : annual_cycle(0.2,1e-3,10),
+            'migration_rates' : {'Population #2':1e-4},
         },
-        'Test2' : {
+        'Population #2' : {
             'n_humans' : 500,
-            'n_infections' : 220,
-            'vectorial_capacity_fn' : annual_cycle(0.05,coeff=0),
-            'migration_rates' : {'Test1':1e-4},
+            'n_infections' : 150,
+            'vectorial_capacity_fn' : annual_cycle(0.045,coeff=0),
+            'migration_rates' : {'Population #1':1e-4},
         }
     }
 
@@ -44,7 +44,7 @@ class Params:
     working_dir      = 'simulations'
     random_seed      = 8675309
 
-    sim_duration     = 365*5     # days
+    sim_duration     = 365*8     # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
 
