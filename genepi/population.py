@@ -27,7 +27,8 @@ class Population:
         self.migration_info=MigrationInfo(migration_rates)
         self.susceptibles=HumanCohort(self,n_humans)
         self.infecteds={}
-        # TODO: ok if more infections than total?
+        if n_infections > n_humans:
+            raise Exception('Initial infections not to exceed initial humans.')
         for _ in range(n_infections):
             i=inf.Infection.from_random()
             self.add_new_infection(i)
@@ -74,10 +75,9 @@ class Population:
             elif i.migration.migrating():
                 emigrant=self.infecteds.pop(iid)
                 self.transmit_emigrant(emigrant)
-                # TODO: careful not to undercount or overcount migration of cleared infections
         if transmissions:
             self.add_infections(transmissions)
-        self.cohort_migration(dt) # TODO: potential small undercounting as new infecteds popped into individuals don't get chance to migrate this timestep?
+        self.cohort_migration(dt)
 
     def vectorial_capacity(self):
         return self.vectorial_capacity_fn(self.parent.day)
@@ -92,7 +92,7 @@ class Population:
     def cohort_migration(self,dt):
         mig_dest=self.migration_info.destinations_in_timestep
         destinations=mig_dest(self.susceptibles.n_humans,dt)
-        self.susceptibles.n_humans -= len(destinations) # TODO: don't go negative?
+        self.susceptibles.n_humans -= len(destinations)
         for dest in destinations:
             self.parent.cohort_migrants[dest]+=1
         log.debug('Cohort migration from %s: %s',self.id,destinations)
