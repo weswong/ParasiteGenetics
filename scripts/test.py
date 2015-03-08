@@ -35,6 +35,8 @@ def init_test():
 def SNP_test():
     g=gn.reference_genome()
     for c,b,f in gn.iterate_SNPs():
+        if b > len(g[c]):
+            log.warning('Chrom %d, pos%d past exceeds length %d!',c,b,len(g[c]))
         log.debug('Chrom %d (length %d): SNP at position %d' % (c,len(g[c]),b))
 
 def bitstring_test():
@@ -197,7 +199,8 @@ def migration_destination_test(n_humans,dt):
     print(Counter(destinations))
 
 if __name__ == '__main__':
-    gn.initializeSNPs('barcode')
+    #gn.initializeSNPs('barcode')
+    gn.initializeSNPs('sequence',bin_size=1000)
 
     #SNP_test()
     #bitstring_test()

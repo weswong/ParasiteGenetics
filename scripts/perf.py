@@ -1,6 +1,6 @@
 import random
 import logging as log
-import gen-epi.genome as gn
+import genepi.genome as gn
 
 '''
 Package:
@@ -17,11 +17,12 @@ Usage:
 
 @profile
 def genome_speed_test():
-    gn.initializeSNPs('barcode')
+    #gn.initializeSNPs('barcode')
+    gn.initializeSNPs('sequence',bin_size=100)
 
-    genomes=[gn.Genome.from_allele_freq() for _ in range(100)]
+    genomes=[gn.Genome.from_allele_freq() for _ in range(10)]
 
-    for _ in range(100):
+    for _ in range(1000):
         g1,g2 = random.sample(genomes,2)
         gn.meiosis(g1,g2)
 
