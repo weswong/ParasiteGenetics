@@ -8,6 +8,8 @@ logging.basicConfig(format='%(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+import numpy as np # for fast meiosis operations on arrays
+
 import utils
 
 bp_per_morgan = 1.5e6
@@ -68,7 +70,7 @@ def reference_genome():
     genome={}
     for chrom_name,chrom_len in Pf_chrom_lengths.iteritems():
         n_bins=get_chromosome_bins(chrom_len)
-        chrom=[0]*n_bins
+        chrom=np.zeros(n_bins,dtype=np.uint8)
         genome[chrom_name]=chrom
     return genome
 
@@ -96,11 +98,14 @@ def get_crossover_points(chrom,bp_per_morgan=bp_per_morgan):
     return xpoints
 
 def crossover(c1,c2,xpoints):
-    c3,c4=c1[:],c2[:]
+    c3=np.copy(c1)
+    c4=np.copy(c2)
     if not xpoints:
         return c3,c4
     for l1,l2 in utils.pairwise(xpoints):
-        c3[l1:l2], c4[l1:l2] = c4[l1:l2], c3[l1:l2]
+        t = np.copy(c3[l1:l2])
+        c3[l1:l2] = c4[l1:l2]
+        c4[l1:l2] = t
     return c3,c4
 
 def meiosis(in1,in2):
