@@ -21,16 +21,17 @@ def genome_hash(genome):
     T=tuple(V)
     return hash(T)
 
-@profile
+#@profile
 def genome_hash2(genome):
     T=tuple(genome)
     return hash(T)
 
-@profile
+#@profile
 def genome_hash3(genome):
     v = genome.view(np.uint8)
     return hashlib.sha1(v)#.hexdigest()
 
+@profile
 def distinct(genomes,hash_fn):
     distinct=[]
     seen = set()
@@ -40,6 +41,15 @@ def distinct(genomes,hash_fn):
             seen.add(h)
             distinct.append(g)
     return distinct
+
+@profile
+def distinct2(genomes):
+    b = np.ascontiguousarray(genomes).view(np.dtype((np.void, genomes.dtype.itemsize * genomes.shape[1])))
+    #_, idx = np.unique(b, return_index=True)
+    #unique_genomes = genomes[idx]
+    unique_genomes = np.unique(b).view(genomes.dtype).reshape(-1, genomes.shape[1])
+    return unique_genomes
+    #return np.unique(np.ascontiguousarray(genomes).view(np.dtype((np.void, genomes.dtype.itemsize * genomes.shape[1])))).view(genomes.dtype).reshape(-1, genomes.shape[1])
 
 def distinct_test(hash_fn,ntests=1):
     length=100
@@ -53,7 +63,7 @@ def distinct_test(hash_fn,ntests=1):
 
 @profile
 def distinct_test2(hash_fn,ntests=1):
-    length=100
+    length=100000
     genomes=[]
     genomes.extend([random_array(length) for _ in range(3)])
     genomes.append(copy.deepcopy(genomes[0]))
@@ -62,7 +72,22 @@ def distinct_test2(hash_fn,ntests=1):
         D=distinct(genomes,hash_fn)
         #print('%d distinct genomes out of %d'%(len(D),len(genomes)))
 
+@profile
+def distinct_test3(ntests=1):
+    length=100000
+    genomes=[]
+    genomes.extend([random_array(length) for _ in range(3)])
+    genomes.append(copy.deepcopy(genomes[0]))
+    genomes.append(copy.deepcopy(genomes[2]))
+    genomes=np.asarray(genomes)
+    for _ in range(ntests):
+        #genomes=np.asarray(genomes)
+        #print(genomes)
+        D=distinct2(genomes)
+        #print(D)
+
 if __name__ == '__main__':
     #distinct_test(genome_hash)
     #distinct_test2(genome_hash2,100)
     distinct_test2(genome_hash3,100)
+    distinct_test3(100)
