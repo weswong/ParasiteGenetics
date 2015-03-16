@@ -49,7 +49,7 @@ class Population:
     def add_infections(self,infections):
         n_infections=len(infections)
         log.debug('Add %d infections:',n_infections)
-        log.debug('\n\n'.join([str(i) for i in infections]))
+        #log.debug('\n\n'.join([str(i) for i in infections]))
         idxs=utils.choose_with_replacement(n_infections,self.n_humans())
         log.debug('Selected individual indices: %s',idxs)
         for idx,infection in zip(idxs,infections):
@@ -62,6 +62,7 @@ class Population:
                 log.debug('New infected individual:\n%s',infection)
                 self.add_new_infection(infection)
 
+    #@profile
     def update(self,dt):
         transmissions=[]
         V=self.vectorial_capacity()

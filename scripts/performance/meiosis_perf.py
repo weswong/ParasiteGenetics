@@ -11,7 +11,7 @@ def crossover_list(c1,c2,xpoints):
     c3,c4=c1[:],c2[:]
     if not xpoints:
         return c3,c4
-    for l1,l2 in utils.pairwise(xpoints):
+    for l1,l2 in utils.by_pair(xpoints):
         c3[l1:l2], c4[l1:l2] = c4[l1:l2], c3[l1:l2]
     return c3,c4
 
@@ -20,7 +20,7 @@ def crossover_array(c1,c2,xpoints):
     c4=np.copy(c2)
     if not xpoints:
         return c3,c4
-    for l1,l2 in utils.pairwise(xpoints):
+    for l1,l2 in utils.by_pair(xpoints):
         t = np.copy(c3[l1:l2])
         c3[l1:l2] = c4[l1:l2]
         c4[l1:l2] = t
@@ -54,7 +54,7 @@ def crossover_test(init1_fn, init2_fn, cross_fn, ntests=1):
     for _ in range(ntests):
         xpoints=random_crosspoints(5,length)
         c3,c4=cross_fn(c1,c2,xpoints)
-    print(c1,c2,c3,c4)
+    #print(c1,c2,c3,c4)
 
 def all_tests():
     #crossover_test(random_list,random_list,crossover_list)

@@ -33,7 +33,7 @@ def positions_from_txt_table(filename,allele_freqs=[]):
             raise Exception('Incompatible lengths of \
                              SNP positions and allele frequencies')
         for i,s in enumerate(SNPs):
-            s.allele_freq=allele_freqs[i]
+            s.freq=allele_freqs[i]
 
     return SNPs
 

@@ -17,8 +17,8 @@ Usage:
 
 @profile
 def genome_speed_test():
-    #gn.initializeSNPs('barcode')
-    gn.initializeSNPs('sequence',bin_size=100)
+    #gn.initialize_from('barcode')
+    gn.initialize_from('sequence',bin_size=100)
 
     genomes=[gn.Genome.from_allele_freq() for _ in range(10)]
 

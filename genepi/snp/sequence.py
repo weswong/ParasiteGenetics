@@ -7,7 +7,7 @@ log.setLevel(logging.INFO)
 
 from genepi import genome as gn
 
-def positions_from_csv(filename):
+def positions_from_csv(filename,min_allele_freq):
     '''
     Read SNP positions from a CSV file in following format:
     chrom,pos,freq
@@ -23,8 +23,9 @@ def positions_from_csv(filename):
         header=next(reader,None)
         for chrom,pos,freq in reader:
             snp=gn.SNP(int(chrom),int(pos),float(freq))
-            SNPs.append(snp)
+            if snp.freq > min_allele_freq:
+                SNPs.append(snp)
 
     return SNPs
 
-SNPs=positions_from_csv('sequence_loci.csv')
+SNPs=positions_from_csv('sequence_loci.csv',min_allele_freq=0)

@@ -51,6 +51,7 @@ class Infection():
         self.infectiousness.send(None)
         self.infection_timer=sim.Params.get_infection_duration()
 
+    #@profile
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         self.infectiousness.send(dt)
@@ -61,6 +62,7 @@ class Infection():
         transmits=[self.transmit() for _ in range(n_transmit)]
         return transmits
 
+    #@profile
     def transmit(self):
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
@@ -70,7 +72,7 @@ class Infection():
         sporozoite_strains=[]
         for g1,g2 in self.sample_gametocyte_pairs(n_ooc):
             meiotic_products=gn.meiosis(g1,g2)
-            log.debug([str(mp) for mp in meiotic_products])
+            #log.debug([str(mp) for mp in meiotic_products])
             sporozoite_strains.extend(meiotic_products)
         hepatocytes=[random.choice(sporozoite_strains) for _ in range(n_hep)]
         return Infection(gn.distinct(hepatocytes))

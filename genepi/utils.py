@@ -1,13 +1,25 @@
 import math
 import random
-import itertools
+from itertools import tee,izip,takewhile
 
-def pairwise(l):
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
+
+def by_pair(l):
     "l -> (l0,l1), (l2,l3), (l4, l5), ..."
     if len(l) % 2:
         l.append(None)
     a = iter(l)
-    return itertools.izip(a, a)
+    return izip(a, a)
+
+def cumsum(it):
+    total = 0
+    for x in it:
+        total += x
+        yield total
 
 def accumulate_cdf(iterable):
     cdf,subtotal=[],0
@@ -62,7 +74,7 @@ def binomialApproxRandom(n,p):
 
 def weighted_choice(cumwts):
     R = random.random()
-    idx=sum(itertools.takewhile(bool, (cw < R for cw in cumwts)))
+    idx=sum(takewhile(bool, (cw < R for cw in cumwts)))
     return idx
 
 def choose_with_replacement(M,N):

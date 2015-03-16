@@ -5,6 +5,8 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+import numpy as np
+
 from genepi import utils,report
 import genepi.genome as gn
 import genepi.infection as inf
@@ -19,7 +21,7 @@ def add_reference(genomes):
 
 def add_mutant(genomes):
     log.debug('MUTANT')
-    genomes+=[gn.Genome.from_barcode([1]*gn.get_n_SNPs())]
+    genomes+=[gn.Genome.from_barcode(np.ones(gn.num_SNPs()))]
 
 def add_random(genomes,N):
     log.debug('RANDOM')
@@ -31,13 +33,6 @@ def init_test():
     add_reference(gg)
     add_mutant(gg)
     add_random(gg,N=10)
-
-def SNP_test():
-    g=gn.reference_genome()
-    for c,b,f in gn.iterate_SNPs():
-        if b > len(g[c]):
-            log.warning('Chrom %d, pos%d past exceeds length %d!',c,b,len(g[c]))
-        log.debug('Chrom %d (length %d): SNP at position %d' % (c,len(g[c]),b))
 
 def bitstring_test():
     A=[1 if random.random()<0.5 else 0 for _ in range(500)]
@@ -162,7 +157,7 @@ def simulation_test():
     #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
-    s.add_report(report.SimulationReport)
+    #s.add_report(report.SimulationReport)
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 
@@ -199,8 +194,8 @@ def migration_destination_test(n_humans,dt):
     print(Counter(destinations))
 
 if __name__ == '__main__':
-    #gn.initializeSNPs('barcode')
-    gn.initializeSNPs('sequence',bin_size=1000)
+    #gn.initialize_from('barcode')
+    gn.initialize_from('sequence',bin_size=100)
 
     #SNP_test()
     #bitstring_test()
