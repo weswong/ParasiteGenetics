@@ -179,10 +179,10 @@ class SNP:
     @staticmethod
     def initialize_from(SNP_source):
         if SNP_source=='barcode':
-            from snp import barcode
+            from config import barcode
             SNPs=barcode.SNPs
         elif SNP_source=='sequence':
-            from snp import sequence
+            from config import sequence
             SNPs=sequence.SNPs
         else:
             raise Exception("Don't recognize SNP source type: %s", SNP_source)
