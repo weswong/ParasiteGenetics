@@ -7,4 +7,7 @@ setup(name='genepi',
       author='Edward Wenger',
       author_email='ewenger@intven.com',
       packages=['genepi'],
+      install_requires=[
+          'numpy',
+      ],
       zip_safe=False)
