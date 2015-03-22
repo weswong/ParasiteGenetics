@@ -17,19 +17,21 @@ class SimulationReport():
     def __init__(self, parent, report_filename='report.json'):
         self.report_filename=report_filename
         self.parent=parent
-        self.data={'SNPs':[s.to_tuple() for s in gn.Genome.SNPs],
+        self.data={'SNP_bins':gn.Genome.SNP_bins,
+                   'chrom_breaks':gn.Genome.chrom_breaks,
                    'populations':sim.Demographics.populations.keys(),
-                   'genomes':{},
+                   #'genomes':{},
                    'n_humans':defaultdict(list)}
 
+    #@profile
     def update(self):
         log.debug('Report updated at t=%d',self.parent.day)
-        today=self.data['genomes'][self.parent.day]=defaultdict(list)
-        for pid,iid,i in self.parent.iterate_infections():
-            if i:
-                today[pid].append([g.barcode_as_long() for g in i.genomes])
-            else:
-                today[pid].append([])
+        #today=self.data['genomes'][self.parent.day]=defaultdict(list)
+        # for pid,iid,i in self.parent.iterate_infections():
+        #     if i:
+        #         today[pid].append([g.barcode_as_long() for g in i.genomes])
+        #     else:
+        #         today[pid].append([])
         for pid,p in self.parent.populations.items():
             self.data['n_humans'][pid].append(p.n_humans())
 

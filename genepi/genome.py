@@ -2,7 +2,10 @@ import math
 import random
 import itertools
 from collections import defaultdict
+from operator import itemgetter
+from importlib import import_module
 import hashlib
+import sys
 
 import logging
 logging.basicConfig(format='%(message)s')
@@ -23,9 +26,9 @@ chrom_lengths_bp  = [ int(bp_per_Mbp*c) for c in chrom_lengths_Mbp ]
 Pf_chrom_lengths  = dict(zip(chrom_names,chrom_lengths_bp))
 log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
-def initialize_from(SNP_source,bin_size=None):
+def initialize_from(SNP_source,bin_size=None,min_allele_freq=0):
 
-    SNPs=SNP.initialize_from(SNP_source)
+    SNPs=SNP.initialize_from(SNP_source,min_allele_freq)
 
     set_bin_size(SNPs,bin_size)
 
@@ -115,7 +118,6 @@ def get_crossover_points(chrom_length,bp_per_morgan=bp_per_morgan):
 
 # TODO: further optimization of crossover/meiosis as
 #       size=(4,genome_length) matrix operations
-#       faster option that only returns one byproduct?
 
 # TODO: optimize distinct/hash check
 
@@ -134,8 +136,6 @@ def crossover(c1,c2,xpoints):
 
 #@profile
 def meiosis(in1,in2):
-
-    #log.debug('Before meiosis:\n%s\n%s',in1,in2)
     genomes=[reference_genome() for _ in range(4)]
     for idx,(start,end) in enumerate(utils.pairwise(Genome.chrom_breaks)):
         c1,c2=in1.genome[start:end],in2.genome[start:end]
@@ -145,9 +145,43 @@ def meiosis(in1,in2):
         outputs=sorted([c1,c2,c3,c4], key=lambda *args: random.random())
         for j in range(4):
             genomes[j][start:end]=outputs[j]
-    out1,out2,out3,out4=(Genome(genomes[j]) for j in range(4))
-    #log.debug('After meiosis:\n%s\n%s\n%s\n%s',out1,out2,out3,out4)
-    return out1,out2,out3,out4
+    return [Genome(genomes[j]) for j in range(4)]
+
+#@profile
+def single_meiotic_product(in1,in2):
+    out_genome=reference_genome()
+    for idx,(start,end) in enumerate(utils.pairwise(Genome.chrom_breaks)):
+        R=random.random()
+        if R<0.25:
+            out_genome[start:end]=in1.genome[start:end]
+        elif R<0.5:
+            out_genome[start:end]=in2.genome[start:end]
+        else:
+            xpoints=get_crossover_points(chrom_length=(end-start))
+            #log.debug('Chr %d, xpoints=%s',chrom_names[idx],xpoints)
+            c3,c4=crossover(in1.genome[start:end],in2.genome[start:end],xpoints)
+            out_genome[start:end]=c3 if R<0.75 else c4
+    return Genome(out_genome)
+
+#@profile
+def distinct_sporozoites_from(gametocyte_pairs,product_idxs):
+    sporozoite_strains=[]
+    for (g1,g2),m_idxs in zip(gametocyte_pairs,product_idxs.values()):
+        if g1.id==g2.id:
+            #log.debug('Selfing of gametocytes (id=%d)\n%s',g1.id,g1)
+            sporozoite_strains.append(g1)
+            continue
+        if len(m_idxs)>1:
+            meiotic_products=meiosis(g1,g2)
+            #log.debug('Meiosis: %s',[str(mp) for mp in meiotic_products])
+            #log.debug('m_idxs=%s',m_idxs)
+            selected_products=itemgetter(*m_idxs)(meiotic_products)
+            sporozoite_strains.extend(selected_products)
+        else:
+            selected_product=single_meiotic_product(g1,g2)
+            #log.debug('Single meiotic product: %s',selected_product)
+            sporozoite_strains.append(selected_product)
+    return distinct(sporozoite_strains)
 
 #@profile
 def distinct(genomes):
@@ -177,16 +211,12 @@ class SNP:
         return (self.chrom,self.pos)
 
     @staticmethod
-    def initialize_from(SNP_source):
-        if SNP_source=='barcode':
-            from config import barcode
-            SNPs=barcode.SNPs
-        elif SNP_source=='sequence':
-            from config import sequence
-            SNPs=sequence.SNPs
-        else:
-            raise Exception("Don't recognize SNP source type: %s", SNP_source)
-        return SNPs
+    def initialize_from(SNP_source,min_allele_freq):
+        try:
+            mod=import_module('.'.join(['genepi','config',SNP_source]))
+            return mod.init(min_allele_freq)
+        except ImportError as e:
+            sys.exit("ImportError for SNP_source: %s"%e)
 
 class Genome:
     '''
@@ -239,7 +269,9 @@ class Genome:
 
     '''
     def barcode_as_long(self):
-        return sum(1<<i for i,b in enumerate(reversed(self.barcode())) if b)
+        #return sum(1<<i for i,b in enumerate(reversed(self.barcode())) if b)
+        return np.packbits(self.genome)
+        #return hash(self)
     '''
 
     def display_barcode(self):

@@ -37,4 +37,8 @@ def positions_from_txt_table(filename,allele_freqs=[]):
 
     return SNPs
 
-SNPs=positions_from_txt_table('barcode_loci.txt',allele_freqs)
+def init(min_allele_freq=0):
+    if min_allele_freq>0:
+        raise Exception('Filtering on rare SNPs not supported for barcode.')
+    SNPs=positions_from_txt_table('barcode_loci.txt',allele_freqs)
+    return SNPs

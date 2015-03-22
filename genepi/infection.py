@@ -1,6 +1,7 @@
 import math
 import random
 import itertools
+from collections import defaultdict
 
 import logging
 log = logging.getLogger(__name__)
@@ -22,6 +23,16 @@ def sample_n_hepatocytes():
     # Bejon et al. "Calculation of Liver-to-Blood Inocula..." (2005)
     # ln(5)~=1.6, ln(2.7)~=1
     return max(1,int(random.lognormvariate(mu=1.6,sigma=0.8)))
+
+def sample_oocyst_products(n_hep,n_ooc):
+    oocyst_product_idxs=list(itertools.product(range(n_ooc),range(4)))
+    hep_idxs=[random.choice(oocyst_product_idxs) for _ in range(n_hep)]
+    products=defaultdict(set)
+    for o_idx,m_idx in hep_idxs:
+        products[o_idx].add(m_idx)
+    products = {k:list(v) for k,v in products.items()}
+    log.debug('(oocyst,meiosis) indices of sampled hepatocytes:%s'%products)
+    return products
 
 class Infection():
     '''
@@ -51,7 +62,6 @@ class Infection():
         self.infectiousness.send(None)
         self.infection_timer=sim.Params.get_infection_duration()
 
-    #@profile
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         self.infectiousness.send(dt)
@@ -62,20 +72,19 @@ class Infection():
         transmits=[self.transmit() for _ in range(n_transmit)]
         return transmits
 
-    #@profile
     def transmit(self):
+        if self.n_strains() == 1:
+            log.debug('Clonal transmission of genome id=%d'%self.genomes[0].id)
+            return Infection(self.genomes)
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
         if n_hep > max_transmit_strains:
             log.debug('Truncating to %d hepatocytes:',max_transmit_strains)
             n_hep=max_transmit_strains
-        sporozoite_strains=[]
-        for g1,g2 in self.sample_gametocyte_pairs(n_ooc):
-            meiotic_products=gn.meiosis(g1,g2)
-            #log.debug([str(mp) for mp in meiotic_products])
-            sporozoite_strains.extend(meiotic_products)
-        hepatocytes=[random.choice(sporozoite_strains) for _ in range(n_hep)]
-        return Infection(gn.distinct(hepatocytes))
+        product_idxs=sample_oocyst_products(n_hep,n_ooc)
+        gametocyte_pairs=self.sample_gametocyte_pairs(len(product_idxs))
+        sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,product_idxs)
+        return Infection(sporozoites)
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]

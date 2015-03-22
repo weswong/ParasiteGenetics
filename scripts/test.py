@@ -84,12 +84,17 @@ def accumulate_test():
     print(utils.accumulate_cdf(A))
 
 def transmit_test():
+    gn.log.setLevel(logging.DEBUG)
     inf.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
     add_mutant(gg)
     i=inf.Infection(gg)
     i.transmit()
+
+def hepatocyte_oocyst_test(n_hep=5,n_ooc=3):
+    inf.log.setLevel(logging.DEBUG)
+    inf.sample_oocyst_products(n_hep,n_ooc)
 
 def sample_test(M,N,n_tests):
     from collections import Counter
@@ -157,7 +162,7 @@ def simulation_test():
     #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
-    #s.add_report(report.SimulationReport)
+    s.add_report(report.SimulationReport)
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 
@@ -195,7 +200,7 @@ def migration_destination_test(n_humans,dt):
 
 if __name__ == '__main__':
     #gn.initialize_from('barcode')
-    gn.initialize_from('sequence',bin_size=100)
+    gn.initialize_from('sequence',bin_size=100,min_allele_freq=0)
 
     #SNP_test()
     #bitstring_test()
@@ -206,6 +211,7 @@ if __name__ == '__main__':
     #accumulate_test()
     #poisson_test(0.9,100)
     #binomial_test(n=100,p=0.9,n_tests=5)
+    #hepatocyte_oocyst_test(n_hep=5,n_ooc=3)
     #transmit_test()
     #reinfection_test()
 

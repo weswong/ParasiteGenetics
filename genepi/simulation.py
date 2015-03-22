@@ -26,14 +26,14 @@ class Demographics:
 
     populations = {
         'Population #1' : {
-            'n_humans' : 100,
-            'n_infections' : 10,
+            'n_humans' : 50,
+            'n_infections' : 5,
             'vectorial_capacity_fn' : annual_cycle(0.2,1e-3,10),
             'migration_rates' : {'Population #2':1e-4},
         },
         'Population #2' : {
-            'n_humans' : 100,
-            'n_infections' : 30,
+            'n_humans' : 50,
+            'n_infections' : 15,
             'vectorial_capacity_fn' : annual_cycle(0.045,coeff=0),
             'migration_rates' : {'Population #1':1e-4},
         }
@@ -44,7 +44,7 @@ class Params:
     working_dir      = 'simulations'
     random_seed      = 8675309
 
-    sim_duration     = 63     # days
+    sim_duration     = 365*3     # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
 
