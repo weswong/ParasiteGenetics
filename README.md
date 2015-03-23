@@ -4,6 +4,10 @@ A simplified _Plasmodium falciparum_ epidemiological model with detailed descrip
 
 `python setup.py install` from this directory
 
+Or to do active development on the project:
+
+`python setup.py develop`
+
 #### Details
 
 `SNP` holds the properties of a single nucleotide polymorphism.
