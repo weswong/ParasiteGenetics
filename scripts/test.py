@@ -7,7 +7,8 @@ log.setLevel(logging.DEBUG)
 
 import numpy as np
 
-from genepi import utils,report
+from genepi import utils
+from genepi.report import report
 import genepi.genome as gn
 import genepi.infection as inf
 import genepi.population as pop
@@ -89,7 +90,7 @@ def transmit_test():
     gg=[]
     add_reference(gg)
     add_mutant(gg)
-    i=inf.Infection(gg)
+    i=inf.Infection(None,gg)
     i.transmit()
 
 def hepatocyte_oocyst_test(n_hep=5,n_ooc=3):
@@ -149,7 +150,7 @@ def reinfection_test(n_tsteps=5):
     gg=[]
     add_reference(gg)
     add_mutant(gg)
-    i=inf.Infection(gg)
+    i=inf.Infection(None,gg)
     t=0
     dt=21
     for _ in range(n_tsteps):
@@ -164,7 +165,8 @@ def simulation_test():
     #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
-    #s.add_report(report.SimulationReport)
+    s.add_report(report.PopulationInfectionReport)
+    s.add_listener('infection.transmit',report.TransmissionGeneticsReport)
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 

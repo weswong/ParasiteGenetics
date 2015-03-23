@@ -22,29 +22,32 @@ def gravity(p1,p2,d12,G=1e-3):
 
 class Demographics:
 
-    # TODO: initialization factory
+    # TODO: Initialization factory - toy topologies, realistic geographies
 
     populations = {
         'Population #1' : {
-            'n_humans' : 100,
-            'n_infections' : 10,
+            'n_humans' : 500,
+            'n_infections' : 20,
             'vectorial_capacity_fn' : annual_cycle(0.2,1e-3,10),
-            'migration_rates' : {'Population #2':1e-4},
+            'migration_rates' : {'Population #2':2e-5},
         },
         'Population #2' : {
-            'n_humans' : 100,
-            'n_infections' : 30,
+            'n_humans' : 500,
+            'n_infections' : 150,
             'vectorial_capacity_fn' : annual_cycle(0.045,coeff=0),
-            'migration_rates' : {'Population #1':1e-4},
+            'migration_rates' : {'Population #1':2e-5},
         }
     }
 
 class Params:
 
+    # TODO: Simulation owns instance of parameterization
+    #       (e.g. parameter sweeps in parallel)
+
     working_dir      = 'simulations'
     random_seed      = 8675309
 
-    sim_duration     = 365*3     # days
+    sim_duration     = 365*20    # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
 
@@ -80,13 +83,18 @@ class Simulation:
         self.migrants=defaultdict(list)
         self.cohort_migrants=defaultdict(int)
         self.reports=[]
+        self.listeners=defaultdict(list)
 
     def run(self):
         for t in range(Params.sim_duration/Params.sim_tstep):
             self.update()
         for r in self.reports:
             r.write(Params.working_dir)
+        for ll in self.listeners.values():
+            for l in ll:
+                l.write(Params.working_dir)
 
+    #@profile
     def update(self,dt=Params.sim_tstep):
         self.day+=dt
         log.info('\nt=%d'%self.day)
@@ -110,9 +118,10 @@ class Simulation:
     def add_report(self,report_class):
         self.reports.append(report_class(self))
 
-    def iterate_infections(self):
-        for pid,p in self.populations.items():
-            if not p.infecteds:
-                yield pid,None,[]
-            for iid,i in p.infecteds.items():
-                yield pid,iid,i.infection
+    def add_listener(self,event,listener_class):
+        self.listeners[event].append(listener_class(self))
+
+    def notify(self,event,*args,**kwargs):
+        listeners=self.listeners.get(event,[])
+        for l in listeners:
+            l.notify(*args,**kwargs)

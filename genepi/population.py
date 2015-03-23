@@ -30,8 +30,7 @@ class Population:
         if n_infections > n_humans:
             raise Exception('Initial infections not to exceed initial humans.')
         for _ in range(n_infections):
-            i=inf.Infection.from_random()
-            self.add_new_infection(i)
+            self.add_new_infection([gn.Genome.from_allele_freq()])
         log.debug(self)
 
     def __str__(self):
@@ -43,7 +42,7 @@ class Population:
     def add_new_infection(self,infection,individual=None):
         if not individual:
             individual=self.susceptibles.pop_individual()
-        individual.infection=infection
+        individual.infection=inf.Infection(individual,infection)
         self.infecteds[individual.id]=individual
 
     def add_infections(self,infections):
@@ -85,6 +84,12 @@ class Population:
 
     def n_humans(self):
         return self.susceptibles.n_humans+len(self.infecteds)
+
+    def n_infecteds(self):
+        return len(self.infecteds)
+
+    def n_polygenomic(self):
+        return sum([i.infection.n_strains()>1 for i in self.infecteds.values()])
 
     def transmit_emigrant(self,emigrant):
         src_pop,dest_pop=self.id,emigrant.migration.destination

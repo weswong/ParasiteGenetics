@@ -43,19 +43,16 @@ class Infection():
 
     id=itertools.count()
 
-    def __init__(self,genomes=[]):
+    def __init__(self,parent,genomes=[]):
         self.id=Infection.id.next()
         log.debug('Infection: id=%d', self.id)
+        self.parent=parent
         self.set_infection_timers()
         self.genomes=genomes
         log.debug('%s', self)
 
     def __str__(self):
         return '\n'.join([str(g) for g in self.genomes])
-
-    @classmethod
-    def from_random(cls,n_clones=1):
-        return cls([gn.Genome.from_allele_freq() for _ in range(n_clones)])
 
     def set_infection_timers(self,t=0):
         self.infectiousness=sim.Params.infectious_generator(t)
@@ -75,7 +72,7 @@ class Infection():
     def transmit(self):
         if self.n_strains() == 1:
             log.debug('Clonal transmission of genome id=%d'%self.genomes[0].id)
-            return Infection(self.genomes)
+            return self.genomes
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
         if n_hep > max_transmit_strains:
@@ -84,7 +81,13 @@ class Infection():
         n_products=sample_oocyst_products(n_hep,n_ooc)
         gametocyte_pairs=self.sample_gametocyte_pairs(len(n_products))
         sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,n_products)
-        return Infection(sporozoites)
+        try:
+            self.simulation().notify('infection.transmit',
+                                     infection=self,
+                                     genomes=sporozoites)
+        except AttributeError:
+            pass
+        return sporozoites
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]
@@ -107,7 +110,16 @@ class Infection():
     def n_strains(self):
         return len(self.genomes)
 
-    def add_infection(self,inf):
-        self.genomes.extend(inf.genomes)
+    def individual(self):
+        return self.parent
+
+    def population(self):
+        return self.parent.parent
+
+    def simulation(self):
+        return self.parent.parent.parent
+
+    def add_infection(self,genomes):
+        self.genomes.extend(genomes)
         self.genomes=gn.distinct(self.genomes)
         self.set_infection_timers(t=sim.Params.incubation)
