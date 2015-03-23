@@ -27,12 +27,12 @@ def sample_n_hepatocytes():
 def sample_oocyst_products(n_hep,n_ooc):
     oocyst_product_idxs=list(itertools.product(range(n_ooc),range(4)))
     hep_idxs=[random.choice(oocyst_product_idxs) for _ in range(n_hep)]
-    products=defaultdict(set)
+    product_idxs=defaultdict(set)
     for o_idx,m_idx in hep_idxs:
-        products[o_idx].add(m_idx)
-    products = {k:list(v) for k,v in products.items()}
-    log.debug('(oocyst,meiosis) indices of sampled hepatocytes:%s'%products)
-    return products
+        product_idxs[o_idx].add(m_idx)
+    n_products_by_oocyst = [len(v) for k,v in product_idxs.items()]
+    log.debug('meiotic products to be sampled per oocyst:%s'%n_products_by_oocyst)
+    return n_products_by_oocyst
 
 class Infection():
     '''
@@ -81,9 +81,9 @@ class Infection():
         if n_hep > max_transmit_strains:
             log.debug('Truncating to %d hepatocytes:',max_transmit_strains)
             n_hep=max_transmit_strains
-        product_idxs=sample_oocyst_products(n_hep,n_ooc)
-        gametocyte_pairs=self.sample_gametocyte_pairs(len(product_idxs))
-        sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,product_idxs)
+        n_products=sample_oocyst_products(n_hep,n_ooc)
+        gametocyte_pairs=self.sample_gametocyte_pairs(len(n_products))
+        sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,n_products)
         return Infection(sporozoites)
 
     def sample_gametocyte_pairs(self, N):

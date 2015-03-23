@@ -143,6 +143,8 @@ def generator_test(tsteps):
         log.debug(n)
 
 def reinfection_test(n_tsteps=5):
+    gn.log.setLevel(logging.DEBUG)
+    inf.log.setLevel(logging.DEBUG)
     sim.log.setLevel(logging.DEBUG)
     gg=[]
     add_reference(gg)
@@ -162,7 +164,7 @@ def simulation_test():
     #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     s=sim.Simulation()
-    s.add_report(report.SimulationReport)
+    #s.add_report(report.SimulationReport)
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 

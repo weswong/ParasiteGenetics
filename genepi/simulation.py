@@ -26,14 +26,14 @@ class Demographics:
 
     populations = {
         'Population #1' : {
-            'n_humans' : 50,
-            'n_infections' : 5,
+            'n_humans' : 100,
+            'n_infections' : 10,
             'vectorial_capacity_fn' : annual_cycle(0.2,1e-3,10),
             'migration_rates' : {'Population #2':1e-4},
         },
         'Population #2' : {
-            'n_humans' : 50,
-            'n_infections' : 15,
+            'n_humans' : 100,
+            'n_infections' : 30,
             'vectorial_capacity_fn' : annual_cycle(0.045,coeff=0),
             'migration_rates' : {'Population #1':1e-4},
         }

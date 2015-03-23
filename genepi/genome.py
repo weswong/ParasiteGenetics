@@ -2,7 +2,6 @@ import math
 import random
 import itertools
 from collections import defaultdict
-from operator import itemgetter
 from importlib import import_module
 import hashlib
 import sys
@@ -119,8 +118,6 @@ def get_crossover_points(chrom_length,bp_per_morgan=bp_per_morgan):
 # TODO: further optimization of crossover/meiosis as
 #       size=(4,genome_length) matrix operations
 
-# TODO: optimize distinct/hash check
-
 # TODO: optimize barcode_as_long (i.e. faster serialize for reporting)
 
 def crossover(c1,c2,xpoints):
@@ -134,8 +131,7 @@ def crossover(c1,c2,xpoints):
         c4[l1:l2] = t
     return c3,c4
 
-#@profile
-def meiosis(in1,in2):
+def meiosis(in1,in2,N=4):
     genomes=[reference_genome() for _ in range(4)]
     for idx,(start,end) in enumerate(utils.pairwise(Genome.chrom_breaks)):
         c1,c2=in1.genome[start:end],in2.genome[start:end]
@@ -145,9 +141,8 @@ def meiosis(in1,in2):
         outputs=sorted([c1,c2,c3,c4], key=lambda *args: random.random())
         for j in range(4):
             genomes[j][start:end]=outputs[j]
-    return [Genome(genomes[j]) for j in range(4)]
+    return [Genome(genomes[j]) for j in range(N)]
 
-#@profile
 def single_meiotic_product(in1,in2):
     out_genome=reference_genome()
     for idx,(start,end) in enumerate(utils.pairwise(Genome.chrom_breaks)):
@@ -163,32 +158,29 @@ def single_meiotic_product(in1,in2):
             out_genome[start:end]=c3 if R<0.75 else c4
     return Genome(out_genome)
 
-#@profile
-def distinct_sporozoites_from(gametocyte_pairs,product_idxs):
+def distinct_sporozoites_from(gametocyte_pairs,n_products):
     sporozoite_strains=[]
-    for (g1,g2),m_idxs in zip(gametocyte_pairs,product_idxs.values()):
+    for (g1,g2),N in zip(gametocyte_pairs,n_products):
         if g1.id==g2.id:
             #log.debug('Selfing of gametocytes (id=%d)\n%s',g1.id,g1)
             sporozoite_strains.append(g1)
             continue
-        if len(m_idxs)>1:
-            meiotic_products=meiosis(g1,g2)
+        if N>1:
+            meiotic_products=meiosis(g1,g2,N)
             #log.debug('Meiosis: %s',[str(mp) for mp in meiotic_products])
-            #log.debug('m_idxs=%s',m_idxs)
-            selected_products=itemgetter(*m_idxs)(meiotic_products)
-            sporozoite_strains.extend(selected_products)
+            sporozoite_strains.extend(meiotic_products)
         else:
             selected_product=single_meiotic_product(g1,g2)
             #log.debug('Single meiotic product: %s',selected_product)
             sporozoite_strains.append(selected_product)
     return distinct(sporozoite_strains)
 
-#@profile
 def distinct(genomes):
     distinct=[]
     seen = set()
     for g in genomes:
-        h=hash(g)
+        #h=hash(g)
+        h=g.id
         if h not in seen:
             seen.add(h)
             distinct.append(g)
@@ -224,6 +216,7 @@ class Genome:
     '''
 
     id=itertools.count()
+    hash_to_id   = {}
 
     chrom_idxs    = {} # chrom_break indices by chromosome name
     chrom_breaks  = [] # locations of chromosome breakpoints on genome
@@ -232,9 +225,16 @@ class Genome:
     bin_size_bp   = [] # base pairs per genome bin
 
     def __init__(self,genome):
-        self.id=Genome.id.next()
-        log.debug('Genome: id=%d', self.id)
         self.genome=genome
+        h=hash(self)
+        id=Genome.hash_to_id.get(h,None)
+        #id=None
+        if id:
+            self.id=id
+        else:
+            self.id=Genome.id.next()
+            Genome.hash_to_id[h]=self.id
+        log.debug('Genome: id=%d', self.id)
         log.debug('%s', self)
 
     def __repr__(self):
@@ -245,8 +245,9 @@ class Genome:
         #return self.display_genome()
 
     def __hash__(self):
-        #return hash(tuple(self.genome))
-        return int(hashlib.sha1(self.genome.view(np.uint8)).hexdigest(),16)
+        h=hashlib.sha1
+        #h=hashlib.md5
+        return int(h(self.genome.view(np.uint8)).hexdigest(),16)
 
     @classmethod
     def from_reference(cls):
