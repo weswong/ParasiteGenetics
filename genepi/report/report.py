@@ -54,19 +54,16 @@ class TransmissionGeneticsReport():
     def __init__(self, parent, report_filename='TransmissionGeneticsReport.csv'):
         self.report_filename=report_filename
         self.parent=parent
-        # TODO: SNP info for full genome dump (not just Genome.id)?
-        self.metadata={ 'SNP_bins':gn.Genome.SNP_bins,
-                        'chrom_breaks':gn.Genome.chrom_breaks,
-                        'populations':sim.Demographics.populations.keys() }
         self.data=[]
 
     def notify(self,*args,**kwargs):
         infection=kwargs['infection']
         genomes=kwargs['genomes']
+        parents=kwargs['parents']
         p_id=infection.population().id
         day=self.parent.day
-        for idx,g in enumerate(genomes):
-            self.data.append((day,p_id,infection.id,idx,g.id))
+        for idx,(g,(gp1,gp2)) in enumerate(zip(genomes,parents)):
+            self.data.append((day,p_id,infection.id,idx,g.id,gp1,gp2))
 
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)
@@ -74,6 +71,6 @@ class TransmissionGeneticsReport():
             os.makedirs(os.path.dirname(filename))
         with open(filename, 'wb') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(['day','pid','iid','idx','gid'])
+            writer.writerow(['day','pid','iid','idx','gid','parent1','parent2'])
             for r in self.data:
                 writer.writerow(r)

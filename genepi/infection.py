@@ -71,7 +71,9 @@ class Infection():
 
     def transmit(self):
         if self.n_strains() == 1:
-            log.debug('Clonal transmission of genome id=%d'%self.genomes[0].id)
+            clone=self.genomes[0]
+            log.debug('Clonal transmission of genome id=%d'%clone.id)
+            self.notify_transmit(self.genomes,[(clone,clone)])
             return self.genomes
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
@@ -81,13 +83,16 @@ class Infection():
         n_products=sample_oocyst_products(n_hep,n_ooc)
         gametocyte_pairs=self.sample_gametocyte_pairs(len(n_products))
         sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,n_products)
+        self.notify_transmit(sporozoites,gametocyte_pairs)
+        return sporozoites
+
+    def notify_transmit(self,genomes,parents):
         try:
             self.simulation().notify('infection.transmit',
-                                     infection=self,
-                                     genomes=sporozoites)
+                                     infection=self,genomes=genomes,
+                                     parents=[(g1.id,g2.id) for (g1,g2) in parents])
         except AttributeError:
             pass
-        return sporozoites
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]

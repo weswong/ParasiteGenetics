@@ -94,7 +94,6 @@ class Simulation:
             for l in ll:
                 l.write(Params.working_dir)
 
-    #@profile
     def update(self,dt=Params.sim_tstep):
         self.day+=dt
         log.info('\nt=%d'%self.day)

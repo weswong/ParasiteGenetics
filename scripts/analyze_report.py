@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # TransmissionGeneticsReport
 df=pd.read_csv('simulations/TransmissionGeneticsReport.csv')
-print(df[:30])
+print(df[:10])
 
 # PopulationInfectionReport
 with open('simulations/PopulationInfectionReport.json') as reportfile:
