@@ -280,8 +280,10 @@ class Genome:
         np.put(genome,Genome.SNP_bins,barcode)
         return cls(genome)
 
-    def barcode(self):
-        return self.genome[Genome.SNP_bins]
+    def barcode(self,sites=None):
+        if not sites:
+            sites=Genome.SNP_bins
+        return self.genome[sites]
 
     def display_barcode(self):
         return ''.join([display_bit(b) for b in self.barcode()])
