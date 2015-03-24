@@ -34,6 +34,29 @@ def sample_oocyst_products(n_hep,n_ooc):
     log.debug('meiotic products to be sampled per oocyst:%s'%n_products_by_oocyst)
     return n_products_by_oocyst
 
+class Transmission:
+    '''
+    Characteristics of transmitted sporozoites and parent gametocytes
+    '''
+    def __init__(self,parentGenomeIds=(None,None),genome=None,
+                      parentInfectionId=None,infectionId=None,
+                      populationId=None,day=None):
+        # sporozoite properties
+        self.genome=genome
+        self.infectionId=infectionId
+        # male + female gametocyte properties
+        self.parentGenomeIds=parentGenomeIds
+        self.parentInfectionId=parentInfectionId
+        # other info
+        self.populationId=populationId
+        self.day=day
+
+    def to_tuple(self):
+        return (self.day,self.populationId,
+                self.infectionId,self.parentInfectionId,
+                self.parentGenomeIds[0],self.parentGenomeIds[1],
+                self.genome.id)
+
 class Infection():
     '''
     An infection in a human containing one or more parasite strains,
@@ -66,15 +89,14 @@ class Infection():
         n_transmit=utils.poissonRandom(transmit_rate)
         log.debug('  id=%d: infection_timer=%d  transmit_rate=%0.2f  n_transmit=%d',
                   self.id,self.infection_timer,transmit_rate,n_transmit)
-        transmits=[self.transmit() for _ in range(n_transmit)]
-        return transmits
+        transmissions=[self.transmit() for _ in range(n_transmit)]
+        return transmissions
 
     def transmit(self):
         if self.n_strains() == 1:
             clone=self.genomes[0]
             log.debug('Clonal transmission of genome id=%d'%clone.id)
-            self.notify_transmit(self.genomes,[(clone,clone)])
-            return self.genomes
+            return [Transmission((clone.id,clone.id),clone,self.id)]
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
         if n_hep > max_transmit_strains:
@@ -83,16 +105,9 @@ class Infection():
         n_products=sample_oocyst_products(n_hep,n_ooc)
         gametocyte_pairs=self.sample_gametocyte_pairs(len(n_products))
         sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,n_products)
-        self.notify_transmit(sporozoites,gametocyte_pairs)
+        for s in sporozoites:
+            s.parentInfectionId=self.id
         return sporozoites
-
-    def notify_transmit(self,genomes,parents):
-        try:
-            self.simulation().notify('infection.transmit',
-                                     infection=self,genomes=genomes,
-                                     parents=[(g1.id,g2.id) for (g1,g2) in parents])
-        except AttributeError:
-            pass
 
     def sample_gametocyte_pairs(self, N):
         pairs=[]

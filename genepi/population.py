@@ -39,27 +39,40 @@ class Population:
         s += 'infections=%d ' % len(self.infecteds)
         return s
 
-    def add_new_infection(self,infection,individual=None):
+    def add_new_infection(self,genomes,individual=None):
         if not individual:
             individual=self.susceptibles.pop_individual()
-        individual.infection=inf.Infection(individual,infection)
+        individual.infection=inf.Infection(individual,genomes)
         self.infecteds[individual.id]=individual
+        return individual.infection
 
-    def add_infections(self,infections):
-        n_infections=len(infections)
+    def add_infections(self,transmissions):
+        n_infections=len(transmissions)
         log.debug('Add %d infections:',n_infections)
-        #log.debug('\n\n'.join([str(i) for i in infections]))
         idxs=utils.choose_with_replacement(n_infections,self.n_humans())
         log.debug('Selected individual indices: %s',idxs)
-        for idx,infection in zip(idxs,infections):
+        for idx,transmission in zip(idxs,transmissions):
+            genomes=[t.genome for t in transmission]
             if idx<len(self.infecteds):
                 i=self.infecteds.values()[idx]
-                i.infection.add_infection(infection)
+                i.infection.add_infection(genomes)
                 log.debug('Merged strains (idx=%d, id=%d):\n%s',
                           idx,i.id,i.infection)
+                self.notify_transmission(transmission,i.infection.id)
             else:
-                log.debug('New infected individual:\n%s',infection)
-                self.add_new_infection(infection)
+                log.debug('New infected individual:\n%s',genomes)
+                infection=self.add_new_infection(genomes)
+                self.notify_transmission(transmission,infection.id)
+
+    def notify_transmission(self,transmission,infectionId=None):
+        try:
+            for t in transmission:
+                t.infectionId=infectionId
+                t.populationId=self.id
+                t.day=self.parent.day
+                self.parent.notify('infection.transmit',t)
+        except AttributeError:
+            pass
 
     #@profile
     def update(self,dt):
@@ -67,8 +80,8 @@ class Population:
         V=self.vectorial_capacity()
         log.info('%s vectorial capacity=%0.2f',self,V)
         for iid,i in self.infecteds.items():
-            transmits=i.update(dt)
-            transmissions.extend(transmits)
+            tt=i.update(dt)
+            transmissions.extend(tt)
             if i.infection.expired():
                 expired=self.infecteds.pop(iid)
                 self.susceptibles.merge_individual(expired)

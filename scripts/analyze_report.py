@@ -7,8 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # TransmissionGeneticsReport
-df=pd.read_csv('simulations/TransmissionGeneticsReport.csv')
-print(df[:10])
+df=pd.read_csv('simulations/TransmissionGeneticsReport.csv',index_col=['iidParent','iid'])
+print(df[['gidParent1','gidParent2','gid']][-30:])
 
 # PopulationInfectionReport
 with open('simulations/PopulationInfectionReport.json') as reportfile:

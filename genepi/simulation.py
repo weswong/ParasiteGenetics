@@ -117,10 +117,11 @@ class Simulation:
     def add_report(self,report_class):
         self.reports.append(report_class(self))
 
-    def add_listener(self,event,listener_class):
-        self.listeners[event].append(listener_class(self))
+    def add_listener(self,listener_class):
+        l=listener_class(self)
+        self.listeners[l.event].append(l)
 
-    def notify(self,event,*args,**kwargs):
+    def notify(self,event,*args):
         listeners=self.listeners.get(event,[])
         for l in listeners:
-            l.notify(*args,**kwargs)
+            l.notify(*args)

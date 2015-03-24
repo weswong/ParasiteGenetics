@@ -54,16 +54,15 @@ class TransmissionGeneticsReport():
     def __init__(self, parent, report_filename='TransmissionGeneticsReport.csv'):
         self.report_filename=report_filename
         self.parent=parent
+        self.event='infection.transmit'
         self.data=[]
 
-    def notify(self,*args,**kwargs):
-        infection=kwargs['infection']
-        genomes=kwargs['genomes']
-        parents=kwargs['parents']
-        p_id=infection.population().id
-        day=self.parent.day
-        for idx,(g,(gp1,gp2)) in enumerate(zip(genomes,parents)):
-            self.data.append((day,p_id,infection.id,idx,g.id,gp1,gp2))
+    def notify(self,*args):
+        try:
+            transmission=args[0]
+        except:
+            raise Exception('Expected Transmission object as first argument.')
+        self.data.append(transmission.to_tuple())
 
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)
@@ -71,6 +70,6 @@ class TransmissionGeneticsReport():
             os.makedirs(os.path.dirname(filename))
         with open(filename, 'wb') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            writer.writerow(['day','pid','iid','idx','gid','parent1','parent2'])
+            writer.writerow(['day','pid','iid','iidParent','gidParent1','gidParent2','gid'])
             for r in self.data:
                 writer.writerow(r)

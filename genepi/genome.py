@@ -14,6 +14,7 @@ log.setLevel(logging.INFO)
 import numpy as np # for fast meiosis operations on arrays
 
 import utils
+from infection import Transmission
 
 bp_per_morgan = 1.5e6
 bp_per_Mbp    = 1e6
@@ -159,28 +160,33 @@ def single_meiotic_product(in1,in2):
     return Genome(out_genome)
 
 def distinct_sporozoites_from(gametocyte_pairs,n_products):
-    sporozoite_strains=[]
+    transmitted_sporozoites=[]
     for (g1,g2),N in zip(gametocyte_pairs,n_products):
         if g1.id==g2.id:
             #log.debug('Selfing of gametocytes (id=%d)\n%s',g1.id,g1)
-            sporozoite_strains.append(g1)
+            t=Transmission((g1.id,g2.id),g1)
+            transmitted_sporozoites.append(t)
             continue
         if N>1:
             meiotic_products=meiosis(g1,g2,N)
             #log.debug('Meiosis: %s',[str(mp) for mp in meiotic_products])
-            sporozoite_strains.extend(meiotic_products)
+            tt=[Transmission((g1.id,g2.id),g) for g in meiotic_products]
+            transmitted_sporozoites.extend(tt)
         else:
             selected_product=single_meiotic_product(g1,g2)
             #log.debug('Single meiotic product: %s',selected_product)
-            sporozoite_strains.append(selected_product)
-    return distinct(sporozoite_strains)
+            t=Transmission((g1.id,g2.id),selected_product)
+            transmitted_sporozoites.append(t)
+    return distinct(transmitted_sporozoites,id_fn=lambda t:t.genome.id)
 
-def distinct(genomes):
+
+def distinct(genomes,
+             id_fn=lambda g:g.id):
+             #id_fn=lambda g: hash(g)):
     distinct=[]
     seen = set()
     for g in genomes:
-        #h=hash(g)
-        h=g.id
+        h=id_fn(g)
         if h not in seen:
             seen.add(h)
             distinct.append(g)
