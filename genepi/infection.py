@@ -57,7 +57,7 @@ class Transmission:
                 self.parentGenomeIds[0],self.parentGenomeIds[1],
                 self.genome.id)
 
-class Infection():
+class Infection:
     '''
     An infection in a human containing one or more parasite strains,
     including the dynamics of parasite propagation through

@@ -84,10 +84,12 @@ def set_binned_SNPs(SNPs):
             log.debug('overlap at chrom %d bin %d',snp.chrom,snp_bin)
             if snp.freq > max_freq:
                 Genome.SNP_freqs[-1]=snp.freq # replace
+                Genome.SNP_names[-1]='Pf.%d.%d'%(snp.chrom,snp.pos)
                 max_freq=snp.freq
         else:
             Genome.SNP_bins.append(snp_bin) # append
             Genome.SNP_freqs.append(snp.freq)
+            Genome.SNP_names.append('Pf.%s.%s'%(snp.chrom,snp.pos))
             last_snp,last_bin=(snp,snp_bin)
 
     log.info('%d of %d unique SNPs after discretization at %dbp binning',
@@ -118,8 +120,6 @@ def get_crossover_points(chrom_length,bp_per_morgan=bp_per_morgan):
 
 # TODO: further optimization of crossover/meiosis as
 #       size=(4,genome_length) matrix operations
-
-# TODO: optimize barcode_as_long (i.e. faster serialize for reporting)
 
 def crossover(c1,c2,xpoints):
     c3=np.copy(c1)
@@ -227,8 +227,16 @@ class Genome:
     chrom_idxs    = {} # chrom_break indices by chromosome name
     chrom_breaks  = [] # locations of chromosome breakpoints on genome
     SNP_bins      = [] # locations of variable positions on genome
+    SNP_names     = [] # chrom.pos encoding of binned SNPs
     SNP_freqs     = [] # minor-allele frequency of binned SNPs
     bin_size_bp   = [] # base pairs per genome bin
+
+    # TODO: find a better thread-safe way of letting Genome know what
+    #       Simulation to notify on reportable events
+    sim = None
+    @classmethod
+    def set_simulation_ref(cls,sim):
+        cls.sim=sim
 
     def __init__(self,genome):
         self.genome=genome
@@ -240,6 +248,7 @@ class Genome:
         else:
             self.id=Genome.id.next()
             Genome.hash_to_id[h]=self.id
+            Genome.sim.notify('genome.init',self)
         log.debug('Genome: id=%d', self.id)
         log.debug('%s', self)
 
@@ -273,13 +282,6 @@ class Genome:
 
     def barcode(self):
         return self.genome[Genome.SNP_bins]
-
-    '''
-    def barcode_as_long(self):
-        #return sum(1<<i for i,b in enumerate(reversed(self.barcode())) if b)
-        return np.packbits(self.genome)
-        #return hash(self)
-    '''
 
     def display_barcode(self):
         return ''.join([display_bit(b) for b in self.barcode()])

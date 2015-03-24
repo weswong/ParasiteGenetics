@@ -7,10 +7,12 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+import numpy as np
+
 from .. import genome as gn
 from .. import simulation as sim
 
-class PopulationInfectionReport():
+class PopulationInfectionReport:
     '''
     A helper class to record high-level metrics of simulation state
     of infections in populations to output file
@@ -45,7 +47,7 @@ class PopulationInfectionReport():
         with open(filename,'w') as outfile:
             json.dump(self.data, outfile, sort_keys=True)
 
-class TransmissionGeneticsReport():
+class TransmissionGeneticsReport:
     '''
     A helper class to record detailed report on genetics
     of infection transmission events to output file
@@ -69,7 +71,36 @@ class TransmissionGeneticsReport():
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
         with open(filename, 'wb') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',')
+            writer = csv.writer(csvfile)
             writer.writerow(['day','pid','iid','iidParent','gidParent1','gidParent2','gid'])
             for r in self.data:
                 writer.writerow(r)
+
+class GenomeReport:
+    '''
+    A helper class to record map of Genome.id to Genome.genome
+    '''
+
+    def __init__(self, parent, report_filename='GenomeReport.csv'):
+        self.report_filename=report_filename
+        self.parent=parent
+        self.event='genome.init'
+        filename=os.path.join(sim.Params.working_dir, self.report_filename)
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        self.csvfile = open(filename, 'wb')
+        self.writer = csv.writer(self.csvfile)
+        #self.writer.writerow(['id']+gn.Genome.SNP_names) # header
+        self.writer.writerow(gn.Genome.SNP_names) # header
+
+    @profile
+    def notify(self,*args):
+        try:
+            g=args[0]
+        except:
+            raise Exception('Expected Genome object as first argument.')
+        barcode=g.barcode()
+        self.writer.writerow(barcode)
+
+    def write(self, working_directory):
+        self.csvfile.close()

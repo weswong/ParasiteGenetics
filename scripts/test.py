@@ -168,6 +168,8 @@ def simulation_test():
     s=sim.Simulation()
     s.add_report(report.PopulationInfectionReport)
     s.add_listener(report.TransmissionGeneticsReport)
+    s.add_listener(report.GenomeReport)
+    s.populate_from_demographics()
     #s.populations['Test'].add_infections([inf.Infection.from_random(1)])
     s.run()
 
@@ -204,8 +206,8 @@ def migration_destination_test(n_humans,dt):
     print(Counter(destinations))
 
 if __name__ == '__main__':
-    gn.initialize_from('barcode')
-    #gn.initialize_from('sequence',bin_size=100,min_allele_freq=0)
+    #gn.initialize_from('barcode')
+    gn.initialize_from('sequence',bin_size=1000,min_allele_freq=0.03)
 
     #SNP_test()
     #bitstring_test()

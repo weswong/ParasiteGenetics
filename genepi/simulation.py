@@ -1,11 +1,13 @@
 import math
 import random
 from collections import defaultdict
-import population as pop
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+import genome as gn
+import population as pop
 
 def annual_cycle(year_max, year_min=0, coeff=2, cycle=365):
     def f(t):
@@ -47,7 +49,7 @@ class Params:
     working_dir      = 'simulations'
     random_seed      = 8675309
 
-    sim_duration     = 365*20    # days
+    sim_duration     = 365*10    # days
     sim_tstep        = 21        # days
     incubation       = 25        # days
 
@@ -78,12 +80,15 @@ class Simulation:
         random.seed(random_seed)
         log.debug('Simulation: random seed = %d' % random_seed)
         self.day=0
-        self.populations={ k:pop.Population(k,self,**v) \
-                           for k,v in Demographics.populations.items() }
         self.migrants=defaultdict(list)
         self.cohort_migrants=defaultdict(int)
         self.reports=[]
         self.listeners=defaultdict(list)
+        gn.Genome.set_simulation_ref(self)
+
+    def populate_from_demographics(self):
+        self.populations={ k:pop.Population(k,self,**v) \
+                           for k,v in Demographics.populations.items() }
 
     def run(self):
         for t in range(Params.sim_duration/Params.sim_tstep):

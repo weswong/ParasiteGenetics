@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 df=pd.read_csv('simulations/TransmissionGeneticsReport.csv',index_col=['iidParent','iid'])
 print(df[['gidParent1','gidParent2','gid']][-30:])
 
+# GenomeReport
+
+
 # PopulationInfectionReport
 with open('simulations/PopulationInfectionReport.json') as reportfile:
     report=json.loads(reportfile.read())
