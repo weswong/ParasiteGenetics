@@ -81,26 +81,26 @@ class GenomeReport:
     A helper class to record map of Genome.id to Genome.genome
     '''
 
-    def __init__(self, parent, report_filename='GenomeReport.csv'):
+    def __init__(self, parent, report_filename='GenomeReport'):
         self.report_filename=report_filename
         self.parent=parent
         self.event='genome.init'
-        filename=os.path.join(sim.Params.working_dir, self.report_filename)
-        if not os.path.exists(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
-        self.csvfile = open(filename, 'wb')
-        self.writer = csv.writer(self.csvfile)
-        #self.writer.writerow(['id']+gn.Genome.SNP_names) # header
-        self.writer.writerow(gn.Genome.SNP_names) # header
+        self.header=gn.Genome.SNP_names
+        self.data=[]
 
-    @profile
+    #@profile
     def notify(self,*args):
         try:
             g=args[0]
         except:
             raise Exception('Expected Genome object as first argument.')
         barcode=g.barcode()
-        self.writer.writerow(barcode)
+        self.data.append(barcode)
 
+    #@profile
     def write(self, working_directory):
-        self.csvfile.close()
+        filename=os.path.join(working_directory, self.report_filename)
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        A=np.array(self.data)
+        np.savez(filename,genomes=A,header=self.header)

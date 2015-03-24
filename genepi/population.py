@@ -74,7 +74,6 @@ class Population:
         except AttributeError:
             pass
 
-    #@profile
     def update(self,dt):
         transmissions=[]
         V=self.vectorial_capacity()

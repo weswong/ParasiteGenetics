@@ -3,6 +3,7 @@ from collections import Counter,defaultdict
 import itertools
 import datetime
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -11,7 +12,11 @@ df=pd.read_csv('simulations/TransmissionGeneticsReport.csv',index_col=['iidParen
 print(df[['gidParent1','gidParent2','gid']][-30:])
 
 # GenomeReport
-
+with np.load('simulations/GenomeReport.npz') as data:
+    A = data['genomes']
+    header=data['header']
+df_genome=pd.DataFrame(A,columns=header)
+print(df_genome.head())
 
 # PopulationInfectionReport
 with open('simulations/PopulationInfectionReport.json') as reportfile:
