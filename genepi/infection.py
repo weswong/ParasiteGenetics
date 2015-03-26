@@ -36,7 +36,7 @@ def sample_oocyst_products(n_hep,n_ooc):
 
 class Transmission:
     '''
-    Characteristics of transmitted sporozoites and parent gametocytes
+    Characteristics of transmitted sporozoite and parent gametocytes
     '''
     def __init__(self,parentGenomeIds=(None,None),genome=None,
                       parentInfectionId=None,infectionId=None,
@@ -130,16 +130,7 @@ class Infection:
     def n_strains(self):
         return len(self.genomes)
 
-    def individual(self):
-        return self.parent
-
-    def population(self):
-        return self.parent.parent
-
-    def simulation(self):
-        return self.parent.parent.parent
-
-    def add_infection(self,genomes):
+    def merge_infection(self,genomes):
         self.genomes.extend(genomes)
         self.genomes=gn.distinct(self.genomes)
         self.set_infection_timers(t=sim.Params.incubation)

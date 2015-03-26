@@ -46,7 +46,7 @@ class Population:
         self.infecteds[individual.id]=individual
         return individual.infection
 
-    def add_infections(self,transmissions):
+    def transmit_infections(self,transmissions):
         n_infections=len(transmissions)
         log.debug('Add %d infections:',n_infections)
         idxs=utils.choose_with_replacement(n_infections,self.n_humans())
@@ -55,7 +55,7 @@ class Population:
             genomes=[t.genome for t in transmission]
             if idx<len(self.infecteds):
                 i=self.infecteds.values()[idx]
-                i.infection.add_infection(genomes)
+                i.infection.merge_infection(genomes)
                 log.debug('Merged strains (idx=%d, id=%d):\n%s',
                           idx,i.id,i.infection)
                 self.notify_transmission(transmission,i.infection.id)
@@ -88,7 +88,7 @@ class Population:
                 emigrant=self.infecteds.pop(iid)
                 self.transmit_emigrant(emigrant)
         if transmissions:
-            self.add_infections(transmissions)
+            self.transmit_infections(transmissions)
         self.cohort_migration(dt)
 
     def vectorial_capacity(self):
