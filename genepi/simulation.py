@@ -1,6 +1,7 @@
 import math
 import random
 from collections import defaultdict
+from importlib import import_module
 
 import logging
 log = logging.getLogger(__name__)
@@ -24,22 +25,15 @@ def gravity(p1,p2,d12,G=1e-3):
 
 class Demographics:
 
-    # TODO: Initialization factory - toy topologies, realistic geographies
+    populations={}
 
-    populations = {
-        'Population #1' : {
-            'n_humans' : 500,
-            'n_infections' : 20,
-            'vectorial_capacity_fn' : annual_cycle(0.2,1e-3,10),
-            'migration_rates' : {'Population #2':2e-5},
-        },
-        'Population #2' : {
-            'n_humans' : 500,
-            'n_infections' : 150,
-            'vectorial_capacity_fn' : annual_cycle(0.045,coeff=0),
-            'migration_rates' : {'Population #1':2e-5},
-        }
-    }
+    @staticmethod
+    def initialize_from(demog_source='two_node',*args):
+        try:
+            mod=import_module('.'.join(['genepi','demog',demog_source]))
+            return mod.init(*args)
+        except ImportError as e:
+            sys.exit("ImportError for demog_source: %s"%e)
 
 class Params:
 

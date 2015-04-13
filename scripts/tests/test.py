@@ -165,6 +165,7 @@ def simulation_test():
     #pop.log.setLevel(logging.DEBUG)
     #inf.log.setLevel(logging.DEBUG)
     #gn.log.setLevel(logging.DEBUG)
+    sim.Demographics.initialize_from('two_node')    
     s=sim.Simulation()
     s.add_report(report.PopulationInfectionReport)
     s.add_listener(report.TransmissionGeneticsReport)
