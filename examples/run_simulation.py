@@ -4,7 +4,8 @@ log.setLevel(logging.DEBUG)
 
 import genepi.genome as gn
 import genepi.simulation as sim
-import genepi.report.report as report
+from genepi.report.report import PopulationInfectionReport
+from genepi.report.listener import TransmissionGeneticsReport,GenomeReport
 
 def init_genome():
     #gn.initialize_from('barcode')
@@ -15,9 +16,8 @@ def populate_demographics(s):
     s.populate_from_demographics('multi_node',N=10,V=(0.18,1e-3,8),M=5e-4)
 
 def add_reports(s):
-    s.add_report(report.PopulationInfectionReport)
-    s.add_listener(report.TransmissionGeneticsReport)
-    s.add_listener(report.GenomeReport)
+    s.add_reports(PopulationInfectionReport)
+    s.add_listeners(TransmissionGeneticsReport,GenomeReport)
 
 def run_simulation():
     init_genome()

@@ -78,12 +78,14 @@ class Simulation:
             self.populations[dest].susceptibles.n_humans+=n_emigrants
         self.cohort_migrants.clear()
 
-    def add_report(self,report_class):
-        self.reports.append(report_class(self))
+    def add_reports(self,*args):
+        for report_class in args:
+            self.reports.append(report_class(self))
 
-    def add_listener(self,listener_class):
-        l=listener_class(self)
-        self.listeners[l.event].append(l)
+    def add_listeners(self,*args):
+        for listener_class in args:
+            l=listener_class(self)
+            self.listeners[l.event].append(l)
 
     def notify(self,event,*args):
         listeners=self.listeners.get(event,[])
