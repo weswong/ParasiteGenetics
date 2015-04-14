@@ -2,7 +2,6 @@ import math
 import random
 import itertools
 from collections import defaultdict
-from importlib import import_module
 import hashlib
 import sys
 
@@ -14,6 +13,7 @@ log.setLevel(logging.INFO)
 import numpy as np # for fast meiosis operations on arrays
 
 import utils
+from snp.snp import SNP
 from infection import Transmission
 
 bp_per_morgan = 1.5e6
@@ -189,30 +189,6 @@ def distinct(genomes,
             seen.add(h)
             distinct.append(g)
     return distinct
-
-class SNP:
-    '''
-    The properties of a single nucleotide polymorphism
-    '''
-
-    def __init__(self,chrom,pos,freq=0.5,bin=None):
-        self.chrom=chrom
-        self.pos=pos
-        self.freq=freq
-
-    def __repr__(self):
-        return 'genome.SNP(%d,%d)'%self.to_tuple()
-
-    def to_tuple(self):
-        return (self.chrom,self.pos)
-
-    @staticmethod
-    def initialize_from(SNP_source,min_allele_freq):
-        try:
-            mod=import_module('.'.join(['genepi','config',SNP_source]))
-            return mod.init(min_allele_freq)
-        except ImportError as e:
-            sys.exit("ImportError for SNP_source: %s"%e)
 
 class Genome:
     '''
