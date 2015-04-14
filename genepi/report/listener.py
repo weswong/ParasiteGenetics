@@ -61,6 +61,12 @@ class GenomeReport(Listener):
         barcode=g.barcode()
         self.data.append(barcode)
 
+    # TODO: performance may be improved by doing one or both of:
+    #       - store genomes instead of barcodes on notify,
+    #         slicing on SNP positions in one matrix operation
+    #       - pre-allocate matrix to store genomes/barcodes;
+    #         trim to size before writing, but save list-to-array time
+
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)
         if not os.path.exists(os.path.dirname(filename)):

@@ -7,6 +7,8 @@ import genepi.simulation as sim
 from genepi.report.report import PopulationInfectionReport
 from genepi.report.listener import TransmissionGeneticsReport,GenomeReport
 
+from analyze_reports import run_analyses
+
 def init_genome():
     #gn.initialize_from('barcode')
     gn.initialize_from('sequence',bin_size=1000,min_allele_freq=0.03)
@@ -28,3 +30,4 @@ def run_simulation():
 
 if __name__ == '__main__':
     run_simulation()
+    run_analyses()
