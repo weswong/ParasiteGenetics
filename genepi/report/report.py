@@ -21,9 +21,7 @@ class PopulationInfectionReport:
     def __init__(self, parent, report_filename='PopulationInfectionReport.json'):
         self.report_filename=report_filename
         self.parent=parent
-        self.data={# TODO: demographics instance owned by Simulation?
-                   'populations':sim.Demographics.populations.keys(),
-                   'tsteps':[],
+        self.data={'tsteps':[],
                    'n_humans':defaultdict(list),
                    'f_infected':defaultdict(list),
                    'f_polygenomic':defaultdict(list)}
@@ -41,6 +39,7 @@ class PopulationInfectionReport:
             self.data['f_polygenomic'][pid].append(f_poly)
 
     def write(self, working_directory):
+        self.data['populations']=self.parent.populations.keys()
         filename=os.path.join(working_directory, self.report_filename)
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))

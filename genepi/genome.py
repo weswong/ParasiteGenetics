@@ -19,6 +19,8 @@ from infection import Transmission
 bp_per_morgan = 1.5e6
 bp_per_Mbp    = 1e6
 
+# mutation_prob = ??       # per day, per position
+
 chrom_names       = range(1,15) # + ['MT','Api']
 chrom_lengths_Mbp = [ 0.643, 0.947,  1.1,  1.2,   1.35,  1.42,  1.45,
                       1.5,   1.55,   1.7,  2.05,  2.3,   2.95,  3.3 ]

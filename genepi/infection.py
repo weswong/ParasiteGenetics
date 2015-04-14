@@ -10,9 +10,27 @@ log.setLevel(logging.INFO)
 import utils
 import genome as gn
 from human import HumanIndividual
-import simulation as sim
 
 max_transmit_strains=10
+
+incubation=25 # days
+
+def infectiousness(t):
+    if t<incubation:
+        return 0
+    else:
+        # TODO: choose functional form based on data!
+        mean_prob=0.8*math.exp(-t/50.)+0.05*math.exp(-t/300.)
+        return min(1.0,max(0,mean_prob+random.gauss(0,0.1)))
+
+def infectious_generator(t=0):
+    while True:
+        dt=yield infectiousness(t)
+        if dt: t+=dt
+
+def get_infection_duration():
+    # Maire et al. (2006)
+    return random.lognormvariate(5.13,0.8)
 
 def sample_n_oocysts():
     # Fit A.Ouedraogo membrane feeding data from Burkina Faso
@@ -78,9 +96,9 @@ class Infection:
         return '\n'.join([str(g) for g in self.genomes])
 
     def set_infection_timers(self,t=0):
-        self.infectiousness=sim.Params.infectious_generator(t)
+        self.infectiousness=infectious_generator(t)
         self.infectiousness.send(None)
-        self.infection_timer=sim.Params.get_infection_duration()
+        self.infection_timer=get_infection_duration()
 
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
@@ -133,4 +151,4 @@ class Infection:
     def merge_infection(self,genomes):
         self.genomes.extend(genomes)
         self.genomes=gn.distinct(self.genomes)
-        self.set_infection_timers(t=sim.Params.incubation)
+        self.set_infection_timers(t=incubation)
