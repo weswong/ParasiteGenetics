@@ -20,7 +20,7 @@ Or to do active development on the project:
 
 `Population` is an object containing a list of individuals and their dynamics.
 
-`Migrating` and `MigrationInfo` are, respectively, the properties of an individual migration event and the characteristics of migration rates for a specific population.
+`Migration` and `MigrationInfo` are, respectively, the properties of an individual migration event and the characteristics of migration rates for a specific population.
 
 `Simulation` is the overall handler of setting up and parameterizing the initial conditions and dynamics of a parasite genetic-epidemiological simulation.
 
