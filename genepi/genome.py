@@ -29,13 +29,9 @@ Pf_chrom_lengths  = dict(zip(chrom_names,chrom_lengths_bp))
 log.debug('Chromosome lengths:\n%s',Pf_chrom_lengths)
 
 def initialize_from(SNP_source,bin_size=None,min_allele_freq=0):
-
     SNPs=SNP.initialize_from(SNP_source,min_allele_freq)
-
     set_bin_size(SNPs,bin_size)
-
     set_chrom_breaks()
-
     set_binned_SNPs(SNPs)
 
 def set_bin_size(SNPs,bin_size):
