@@ -2,6 +2,8 @@ import json
 from collections import Counter,defaultdict
 import itertools
 import datetime
+import sys
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -18,8 +20,11 @@ def population_analysis(file='simulations/PopulationInfectionReport.json'):
     '''
     Analysis of the PopulationInfectionReport output
     '''
-    with open(file) as reportfile:
-        report=json.loads(reportfile.read())
+    try:
+        with open(file) as reportfile:
+            report=json.loads(reportfile.read())
+    except IOError as e:
+        sys.exit(e)
 
     firstday=datetime.date(2000,1,1)
 

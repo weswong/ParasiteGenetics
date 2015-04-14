@@ -1,4 +1,6 @@
 import csv
+import sys
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -38,7 +40,10 @@ def transmission_analysis(file='simulations/TransmissionGeneticsReport.csv'):
     '''
     Analysis of the TransmissionGeneticsReport output
     '''
-    tx=pd.read_csv(file)
+    try:
+        tx=pd.read_csv(file)
+    except IOError as e:
+        sys.exit(e)
     f,(ax1,ax2)=plt.subplots(1,2,figsize=(10,5),num='InfectionProperties')
     onward_transmissions(tx,ax1)
     genomes_per_infection(tx,ax2)
