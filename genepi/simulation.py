@@ -28,10 +28,10 @@ class Demographics:
     populations={}
 
     @staticmethod
-    def initialize_from(demog_source='two_node',*args):
+    def initialize_from(demog_source='two_node',*args,**kwargs):
         try:
             mod=import_module('.'.join(['genepi','demog',demog_source]))
-            return mod.init(*args)
+            return mod.init(*args,**kwargs)
         except ImportError as e:
             sys.exit("ImportError for demog_source: %s"%e)
 
