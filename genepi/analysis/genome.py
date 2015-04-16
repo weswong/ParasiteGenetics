@@ -1,5 +1,6 @@
 import os
 import csv
+import glob
 import sys
 import subprocess
 
@@ -7,11 +8,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from genepi.genome import bp_per_cM
+from genepi.genome import bp_per_cM,chrom_names
 
 cwd=os.path.dirname(os.path.realpath(__file__))
 
-def plink_format(genomes):
+def plink_format(genomes,chrom_name=''):
     '''
     Transform dataframe into temporary PLINK formatted files (.map + .ped)
 
@@ -35,7 +36,7 @@ def plink_format(genomes):
     if not os.path.exists('output'):
         os.mkdir('output')
 
-    file=os.path.join('output','plink.map')
+    file=os.path.join('output','plink%s.map'%chrom_name)
     print('Writing file: %s'%file)
     with open(file,'w') as f:
         for id in genomes.columns:
@@ -68,26 +69,28 @@ def plink_format(genomes):
         '''
         return '0 g%d 0 0 0 -9 '%id + ' '.join([' '.join([str(x+1)]*2) for x in genome])
 
-    file=os.path.join('output','plink.ped')
+    file=os.path.join('output','plink%s.ped'%chrom_name)
     print('Writing file: %s'%file)
     with open(file,'w') as f:
         for id_genome in zip(genomes.index,genomes.values):
             line=parse_genome(*id_genome)
             f.write(line+'\n')
 
-    file=os.path.join('output','plink.fam')
+    file=os.path.join('output','plink%s.fam'%chrom_name)
     print('Writing file: %s'%file)
     with open(file,'w') as f:
         for id in genomes.index:
             line=parse_genome(id)
             f.write(line+'\n')
 
-def ibd_finder():
+def ibd_finder(chrom_name=''):
     '''
     Call out to GERMLINE
     http://www.cs.columbia.edu/~gusev/germline/
     to find pairwise IBD segments
     '''
+    with open(os.path.join(cwd,'germline.stdin'),'w') as f:
+        f.write('1\noutput/plink%s.map\noutput/plink%s.ped\noutput/germline%s'%(chrom_name,chrom_name,chrom_name))
     with open(os.path.join(cwd,'germline.stdin'),'r') as f:
         try:
             exe=os.path.join(cwd,'bin','germline')
@@ -125,11 +128,17 @@ def cluster_finder():
         print('DASH executable not found at %s'%exe)
 
 def ibd_analysis():
-    df=pd.read_csv('output/germline.match',
-                   delim_whitespace=True,
-                   names=['famId1','indId1','famId2','indId2',
-                          'chrom','start','end','startSNP','endSNP',
-                          'bits','dist','unit','mismatches','homo1','homo2'])
+
+    allFiles = glob.glob('output/germline**.match')
+    df = pd.DataFrame()
+    list = []
+    for file in allFiles:
+        tmp = pd.read_csv(file,delim_whitespace=True,index_col=None,header=None)
+        list.append(tmp)
+    df = pd.concat(list)
+    df.columns=['famId1','indId1','famId2','indId2',
+                'chrom','start','end','startSNP','endSNP',
+                'bits','dist','unit','mismatches','homo1','homo2']
 
     # IBD segment lengths
     f=plt.figure('SegmentLengthIBD')
@@ -139,12 +148,14 @@ def ibd_analysis():
     # IBD segment locations + frequency
     counts=df.groupby(['chrom','start','end'])['dist'].count()
     nchrom=len(counts.index.levels[0])
-    f,axs=plt.subplots(nchrom,1,num='SegmentMapIBD')
+    ncol = 1+nchrom/4
+    nrow = int(np.ceil(float(nchrom)/ncol))
+    f,axs=plt.subplots(nrow,ncol,num='SegmentMapIBD',figsize=(15,10))
     for ichrom,(chrom,ibd_counts) in enumerate(counts.groupby(level=0)):
-        ax=axs[ichrom] if nchrom>1 else axs
+        ax=axs[ichrom//ncol,ichrom%ncol] if nrow*ncol>1 else axs
         for idx,(rng,cnt) in enumerate(ibd_counts[chrom].iteritems()):
             ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.2+1.2*np.log10(cnt),c='navy',alpha=0.8)
-            ax.set_title('Chromosome %s (MB)'%chrom,x=0.12,y=0.85,fontsize=12)
+            ax.set_title('Chromosome %s'%chrom,y=0.85,x=0.25,fontsize=10)
             ax.get_yaxis().set_visible(False)
     f.set_tight_layout(True)
 
@@ -174,25 +185,21 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     except IOError as e:
         sys.exit(e)
 
+    # TODO: one file per chromosome?
+    #has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
+
     genomes=pd.DataFrame(A,columns=header)
-    has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
+    for chrom_name in chrom_names:
+        if reformat:
+            print('Chromosome %s:'%chrom_name)
+            chrom=genomes.filter(regex='\w\.%s\.\w'%chrom_name)
+            plink_format(chrom.iloc[::10,:],chrom_name) # 10x downsampling
+            ibd_finder(chrom_name)
+            # TODO: handling of multiple chromosomes?
+            #cluster_finder()
 
-    if reformat or not (has_file('plink.map') and has_file('plink.ped')):
-        # chrom-1: 221
-        # chrom-2: 593
-        # chrom-3: 1023
-        # chrom-4: 1535
-        # TODO: funny behavior with GERMLINE running on multiple chromosomes
-        plink_format(genomes.iloc[::10,1023:1535]) # 10x downsampling, chrom-3/4
-
-    if reformat or not (has_file('germline.match') and has_file('plink.fam')):
-        ibd_finder()
     ibd_analysis()
-
-    # TODO: handling of multiple chromosomes?
-    # if reformat or not has_file('dash.clst'):
-    #     cluster_finder()
-    # cluster_analysis()
+    #cluster_analysis()
 
 if __name__ == '__main__':
     genome_analysis('../../examples/simulations/GenomeReport.npz',
