@@ -31,7 +31,7 @@ def repeat_genomes(tx):
     repeats=tx.groupby(['gid','day'])['pid'].count().unstack('day')
     repeats.dropna(thresh=3,inplace=True)
     f=plt.figure('RepeatGenomes')
-    plt.imshow(repeats.values,interpolation='nearest',cmap='Reds')
+    plt.imshow(repeats.values,interpolation='nearest',cmap='Reds',vmin=-15)
     plt.xlabel('Timestep')
     plt.ylabel('Genome ID')
     f.set_tight_layout(True)
