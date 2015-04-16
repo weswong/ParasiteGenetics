@@ -33,7 +33,9 @@ def plink_format(genomes):
     if not os.path.exists('output'):
         os.mkdir('output')
 
-    with open(os.path.join('output','plink.map'),'w') as f:
+    file=os.path.join('output','plink.map')
+    print('Writing file: %s'%file)
+    with open(file,'w') as f:
         for id in genomes.columns:
             line=parse_SNP_id(id)
             f.write(line+'\n')
@@ -64,12 +66,16 @@ def plink_format(genomes):
         '''
         return '0 g%d 0 0 0 -9 '%id + ' '.join([' '.join([str(x+1)]*2) for x in genome])
 
-    with open(os.path.join('output','plink.ped'),'w') as f:
+    file=os.path.join('output','plink.ped')
+    print('Writing file: %s'%file)
+    with open(file,'w') as f:
         for id_genome in zip(genomes.index,genomes.values):
             line=parse_genome(*id_genome)
             f.write(line+'\n')
 
-    with open(os.path.join('output','plink.fam'),'w') as f:
+    file=os.path.join('output','plink.fam')
+    print('Writing file: %s'%file)
+    with open(file,'w') as f:
         for id in genomes.index:
             line=parse_genome(id)
             f.write(line+'\n')
@@ -129,7 +135,7 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
 
     genomes=pd.DataFrame(A,columns=header)
 
-    has_file=lambda f: os.path.isfile(os.path.join(cwd,f))
+    has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
     if reformat or not (has_file('plink.map') and has_file('plink.ped')):
         plink_format(genomes.iloc[-100:,:221]) # last hundred genomes, chrom-1
 
