@@ -4,7 +4,6 @@ import utils
 
 import logging
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 class Migration:
     def __init__(self,in_days=[],destination=[]):

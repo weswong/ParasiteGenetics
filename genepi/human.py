@@ -2,7 +2,6 @@ import itertools
 
 import logging
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 from migration import Migration
 

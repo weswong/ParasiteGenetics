@@ -1,6 +1,7 @@
 import logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log = logging.getLogger('genepi')
+logging.basicConfig(format='%(message)s')
+log.setLevel(logging.INFO)
 
 import genepi.genome as gn
 import genepi.simulation as sim

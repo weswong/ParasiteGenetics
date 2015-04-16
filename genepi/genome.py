@@ -6,9 +6,7 @@ import hashlib
 import sys
 
 import logging
-logging.basicConfig(format='%(message)s')
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 import numpy as np # for fast meiosis operations on arrays
 

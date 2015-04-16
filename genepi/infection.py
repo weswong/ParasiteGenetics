@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import logging
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 import utils
 import genome as gn

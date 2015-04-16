@@ -5,7 +5,6 @@ from importlib import import_module
 
 import logging
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 import genome as gn
 import population as pop
