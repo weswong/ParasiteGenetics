@@ -2,8 +2,10 @@ import os
 import csv
 import sys
 import subprocess
+
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from genepi.genome import bp_per_cM
 
@@ -122,6 +124,45 @@ def cluster_finder():
     except OSError:
         print('DASH executable not found at %s'%exe)
 
+def ibd_analysis():
+    df=pd.read_csv('output/germline.match',
+                   delim_whitespace=True,
+                   names=['famId1','indId1','famId2','indId2',
+                          'chrom','start','end','startSNP','endSNP',
+                          'bits','dist','unit','mismatches','homo1','homo2'])
+
+    # IBD segment lengths
+    f=plt.figure('SegmentLengthIBD')
+    df.dist.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
+    plt.xlabel('IBD segment length (cM)')
+
+    # IBD segment locations + frequency
+    counts=df.groupby(['chrom','start','end'])['dist'].count()
+    nchrom=len(counts.index.levels[0])
+    f,axs=plt.subplots(nchrom,1,num='SegmentMapIBD')
+    for ichrom,(chrom,ibd_counts) in enumerate(counts.groupby(level=0)):
+        ax=axs[ichrom] if nchrom>1 else axs
+        for idx,(rng,cnt) in enumerate(ibd_counts[chrom].iteritems()):
+            ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.2+1.2*np.log10(cnt),c='navy',alpha=0.8)
+            ax.set_title('Chromosome %s (MB)'%chrom,x=0.12,y=0.85,fontsize=12)
+            ax.get_yaxis().set_visible(False)
+    f.set_tight_layout(True)
+
+    # IBD fractions
+    shared=df.groupby(['indId1','indId2'])['dist'].sum()
+    f=plt.figure('SharedLengthIBD')
+    shared.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
+    plt.xlabel('Total IBD length (cM)')
+
+    # pairwise chromosome painter
+    g1,g2=shared.argmax()
+    print('Most similar genomes: %s and %s (IBD=%0.1f cM)'%(g1,g2,shared[(g1,g2)]))
+
+    # IBD fraction network
+
+def cluster_analysis():
+    pass
+
 def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     '''
     Analysis of the GenomeReport output
@@ -134,15 +175,26 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
         sys.exit(e)
 
     genomes=pd.DataFrame(A,columns=header)
-
     has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
+
     if reformat or not (has_file('plink.map') and has_file('plink.ped')):
-        plink_format(genomes.iloc[-100:,:221]) # last hundred genomes, chrom-1
+        # chrom-1: 221
+        # chrom-2: 593
+        # chrom-3: 1023
+        # chrom-4: 1535
+        # TODO: funny behavior with GERMLINE running on multiple chromosomes
+        plink_format(genomes.iloc[::10,1023:1535]) # 10x downsampling, chrom-3/4
 
-    ibd_finder()
+    if reformat or not (has_file('germline.match') and has_file('plink.fam')):
+        ibd_finder()
+    ibd_analysis()
 
-    cluster_finder()
+    # TODO: handling of multiple chromosomes?
+    # if reformat or not has_file('dash.clst'):
+    #     cluster_finder()
+    # cluster_analysis()
 
 if __name__ == '__main__':
     genome_analysis('../../examples/simulations/GenomeReport.npz',
-                    reformat=True)
+                    reformat=False)
+    plt.show()
