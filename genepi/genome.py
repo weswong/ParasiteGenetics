@@ -17,6 +17,7 @@ from snp.snp import SNP
 from infection import Transmission
 
 bp_per_morgan = 1.5e6
+bp_per_cM     = bp_per_morgan/1e2
 bp_per_Mbp    = 1e6
 
 # mutation_prob = ??       # per day, per position

@@ -5,7 +5,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 
-from genepi.genome import bp_per_morgan
+from genepi.genome import bp_per_cM
 
 def plink_format(genomes):
     '''
@@ -26,9 +26,11 @@ def plink_format(genomes):
         e.g. Pf.1.2402 --> 1 Pf.1.2402 0.0016013 2402
         '''
         _,chrom,pos=id.split('.')
-        return "{0} {1} {2:.7f} {3}".format(chrom,id,float(pos)/bp_per_morgan,pos)
+        return "{0} {1} {2:.7f} {3}".format(chrom,id,float(pos)/bp_per_cM,pos)
 
-    with open('g.map','w') as f:
+    if not os.path.exists('output'):
+        os.mkdir('output')
+    with open(os.path.join('output','g.map'),'w') as f:
         for id in genomes.columns:
             line=parse_SNP_id(id)
             f.write(line+'\n')
@@ -59,25 +61,10 @@ def plink_format(genomes):
         '''
         return '0 g%d 0 0 0 -9 '%id + ' '.join([' '.join([str(x+1)]*2) for x in genome])
 
-    with open('g.ped','w') as f:
+    with open(os.path.join('output','g.ped'),'w') as f:
         for id_genome in zip(genomes.index,genomes.values):
             line=parse_genome(*id_genome)
             f.write(line+'\n')
-
-    '''
-    df=genomes.applymap(lambda x:str(x+1)*2)
-
-    df.insert(0,'familyID',0)
-    df.insert(1,'individualID',df.index.map(lambda x: 'g'+str(x)))
-    df.insert(2,'paternalID',0)
-    df.insert(3,'maternalID',0)
-    df.insert(4,'sex',0)
-    df.insert(5,'phenotype',-9)
-
-    df.to_csv('plink.ped',sep=' ',
-              header=False,index=False,
-              quoting=csv.QUOTE_NONE,escapechar=' ') # hmm... picky about whitespace?
-    '''
 
 def ibd_finder():
     '''
@@ -85,20 +72,24 @@ def ibd_finder():
     http://www.cs.columbia.edu/~gusev/germline/
     to find pairwise IBD segments
     '''
-    with open('test.run','r') as f:
+    with open('germline.stdin','r') as f:
         try:
-            subprocess.check_call(['./germline',
+            exe='./bin/germline'
+            subprocess.check_call([exe,
                                    #'-haploid',
                                    #'-bin_out',
-                                   '-min_m','5',
+                                   '-min_m','10',
                                    '-bits','32',
-                                   '-err_hom','0',
-                                   '-err_het','0'],
+                                   '-w_extend',
+                                   '-err_hom','1',
+                                   '-err_het','1'],
                                    stdin=f)
         except subprocess.CalledProcessError as e:
-            codes={  1:'No IBD segments found',
-                   -11:'Failed'}
-            print('\nERROR: '+codes.get(e.returncode,'code=%d'%e.returncode))
+            codes={  1:'GERMLINE: complete',
+                   -11:'GERMLINE: unhandled exception'}
+            print('\n'+codes.get(e.returncode,'ERROR CODE=%d'%e.returncode))
+        except OSError:
+            print('GERMLINE executable not found at %s'%exe)
 
 def cluster_finder():
     '''
@@ -124,8 +115,7 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     cwd=os.path.dirname(os.path.realpath(__file__))
     has_file=lambda f: os.path.isfile(os.path.join(cwd,f))
     if reformat or not (has_file('g.map') and has_file('g.ped')):
-        # TODO: understand why this is crashing for large inputs
-        plink_format(genomes.iloc[-100:,:])
+        plink_format(genomes.iloc[-100:,:221]) # last hundred genomes, chrom-1
 
     ibd_finder()
 
