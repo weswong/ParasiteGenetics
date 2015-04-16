@@ -7,6 +7,8 @@ import pandas as pd
 
 from genepi.genome import bp_per_cM
 
+cwd=os.path.dirname(os.path.realpath(__file__))
+
 def plink_format(genomes):
     '''
     Transform dataframe into temporary PLINK formatted files (.map + .ped)
@@ -78,9 +80,9 @@ def ibd_finder():
     http://www.cs.columbia.edu/~gusev/germline/
     to find pairwise IBD segments
     '''
-    with open('germline.stdin','r') as f:
+    with open(os.path.join(cwd,'germline.stdin'),'r') as f:
         try:
-            exe='./bin/germline'
+            exe=os.path.join(cwd,'bin','germline')
             subprocess.check_call([exe,
                                    #'-haploid',
                                    #'-bin_out',
@@ -102,7 +104,7 @@ def cluster_finder():
     http://www.cs.columbia.edu/~gusev/dash/
     to find clusters of sequences from IBD segments
     '''
-    exe='./bin/dash_cc'
+    exe=os.path.join(cwd,'bin','dash_cc')
     cmds=['cat output/germline.match',
           'cut -f 1,2,4',
           '%s output/plink.fam output/dash'%exe]
@@ -127,7 +129,6 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
 
     genomes=pd.DataFrame(A,columns=header)
 
-    cwd=os.path.dirname(os.path.realpath(__file__))
     has_file=lambda f: os.path.isfile(os.path.join(cwd,f))
     if reformat or not (has_file('plink.map') and has_file('plink.ped')):
         plink_format(genomes.iloc[-100:,:221]) # last hundred genomes, chrom-1
