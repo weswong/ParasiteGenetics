@@ -30,7 +30,8 @@ def plink_format(genomes):
 
     if not os.path.exists('output'):
         os.mkdir('output')
-    with open(os.path.join('output','g.map'),'w') as f:
+
+    with open(os.path.join('output','plink.map'),'w') as f:
         for id in genomes.columns:
             line=parse_SNP_id(id)
             f.write(line+'\n')
@@ -54,16 +55,21 @@ def plink_format(genomes):
 
     '''
 
-    def parse_genome(id,genome):
+    def parse_genome(id,genome=[]):
         '''
         Parse genome ID and genome from dataframe into .ped formatted line:
         e.g. 0,00011... --> 0 g0 0 0 0 -9 1 1 1 1 1 1 2 2 2 2  ...
         '''
         return '0 g%d 0 0 0 -9 '%id + ' '.join([' '.join([str(x+1)]*2) for x in genome])
 
-    with open(os.path.join('output','g.ped'),'w') as f:
+    with open(os.path.join('output','plink.ped'),'w') as f:
         for id_genome in zip(genomes.index,genomes.values):
             line=parse_genome(*id_genome)
+            f.write(line+'\n')
+
+    with open(os.path.join('output','plink.fam'),'w') as f:
+        for id in genomes.index:
+            line=parse_genome(id)
             f.write(line+'\n')
 
 def ibd_finder():
@@ -85,9 +91,8 @@ def ibd_finder():
                                    '-err_het','1'],
                                    stdin=f)
         except subprocess.CalledProcessError as e:
-            codes={  1:'GERMLINE: complete',
-                   -11:'GERMLINE: unhandled exception'}
-            print('\n'+codes.get(e.returncode,'ERROR CODE=%d'%e.returncode))
+            codes={1:'GERMLINE: complete'}
+            print(codes.get(e.returncode,'\nERROR CODE=%d'%e.returncode))
         except OSError:
             print('GERMLINE executable not found at %s'%exe)
 
@@ -97,7 +102,17 @@ def cluster_finder():
     http://www.cs.columbia.edu/~gusev/dash/
     to find clusters of sequences from IBD segments
     '''
-    pass
+    exe='./bin/dash_cc'
+    cmds=['cat output/germline.match',
+          'cut -f 1,2,4',
+          '%s output/plink.fam output/dash'%exe]
+    try:
+        output=subprocess.check_output('|'.join(cmds), shell=True)
+    except subprocess.CalledProcessError as e:
+        codes={1:'DASH: complete'}
+        print(codes.get(e.returncode,'\nERROR CODE=%d'%e.returncode))
+    except OSError:
+        print('DASH executable not found at %s'%exe)
 
 def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     '''
@@ -114,12 +129,12 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
 
     cwd=os.path.dirname(os.path.realpath(__file__))
     has_file=lambda f: os.path.isfile(os.path.join(cwd,f))
-    if reformat or not (has_file('g.map') and has_file('g.ped')):
+    if reformat or not (has_file('plink.map') and has_file('plink.ped')):
         plink_format(genomes.iloc[-100:,:221]) # last hundred genomes, chrom-1
 
     ibd_finder()
 
-    #cluster_finder()
+    cluster_finder()
 
 if __name__ == '__main__':
     genome_analysis('../../examples/simulations/GenomeReport.npz',
