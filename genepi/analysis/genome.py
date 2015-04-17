@@ -7,8 +7,9 @@ import subprocess
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch as fpatch
 
-from genepi.genome import bp_per_cM,chrom_names
+from genepi.genome import bp_per_cM,chrom_names,chrom_lengths_Mbp
 
 cwd=os.path.dirname(os.path.realpath(__file__))
 
@@ -100,8 +101,8 @@ def ibd_finder(chrom_name=''):
                                    '-min_m','10',
                                    '-bits','32',
                                    '-w_extend',
-                                   '-err_hom','1',
-                                   '-err_het','1'],
+                                   '-err_hom','0',
+                                   '-err_het','0'],
                                    stdin=f)
         except subprocess.CalledProcessError as e:
             codes={1:'GERMLINE: complete'}
@@ -141,35 +142,72 @@ def ibd_analysis():
                 'bits','dist','unit','mismatches','homo1','homo2']
 
     # IBD segment lengths
-    f=plt.figure('SegmentLengthIBD')
-    df.dist.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
-    plt.xlabel('IBD segment length (cM)')
+    def plot_IBD_lengths(df):
+        f=plt.figure('SegmentLengthIBD')
+        df.dist.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
+        plt.xlabel('IBD segment length (cM)')
 
     # IBD segment locations + frequency
-    counts=df.groupby(['chrom','start','end'])['dist'].count()
-    nchrom=len(counts.index.levels[0])
-    ncol = 1+nchrom/4
-    nrow = int(np.ceil(float(nchrom)/ncol))
-    f,axs=plt.subplots(nrow,ncol,num='SegmentMapIBD',figsize=(15,10))
-    for ichrom,(chrom,ibd_counts) in enumerate(counts.groupby(level=0)):
-        ax=axs[ichrom//ncol,ichrom%ncol] if nrow*ncol>1 else axs
-        for idx,(rng,cnt) in enumerate(ibd_counts[chrom].iteritems()):
-            ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.2+1.2*np.log10(cnt),c='navy',alpha=0.8)
-            ax.set_title('Chromosome %s'%chrom,y=0.85,x=0.25,fontsize=10)
-            ax.get_yaxis().set_visible(False)
-    f.set_tight_layout(True)
+    def plot_IBD_map(df):
+        counts=df.groupby(['chrom','start','end'])['dist'].count()
+        nchrom=len(counts.index.levels[0])
+        ncol = 1+nchrom/4
+        nrow = int(np.ceil(float(nchrom)/ncol))
+        f,axs=plt.subplots(nrow,ncol,num='SegmentMapIBD',figsize=(15,10))
+        for ichrom,(chrom,ibd_counts) in enumerate(counts.groupby(level=0)):
+            ax=axs[ichrom//ncol,ichrom%ncol] if nrow*ncol>1 else axs
+            for idx,(rng,cnt) in enumerate(ibd_counts[chrom].iteritems()):
+                ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.2+1.2*np.log10(cnt),c='navy',alpha=0.8)
+                ax.set_title('Chromosome %s'%chrom,y=0.85,x=0.25,fontsize=10)
+                ax.get_yaxis().set_visible(False)
+        f.set_tight_layout(True)
 
-    # IBD fractions
+    # Total pairwise shared IBD lengths
     shared=df.groupby(['indId1','indId2'])['dist'].sum()
-    f=plt.figure('SharedLengthIBD')
-    shared.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
-    plt.xlabel('Total IBD length (cM)')
+    shared.sort(ascending=False)
+    def sorted_shared_idx(q):
+        return int(len(shared)*(1-q))
+
+    # IBD shared fractions
+    def plot_IBD_fractions(shared):
+        f=plt.figure('SharedLengthIBD')
+        shared.plot(kind='hist',bins=30,color='navy',alpha=0.2,fig=f)
+        plt.xlabel('Total IBD length (cM)')
 
     # pairwise chromosome painter
-    g1,g2=shared.argmax()
-    print('Most similar genomes: %s and %s (IBD=%0.1f cM)'%(g1,g2,shared[(g1,g2)]))
+    def plot_shared_regions(df,q):
+        idx=sorted_shared_idx(q)
+        (g1,g2),v=shared.index[idx],shared[idx]
+        print('q%d genome similarity: %s and %s (IBD=%0.1f cM)'%(int(q*100),g1,g2,v))
+        pair=df.groupby(['indId1','indId2']).get_group((g1,g2))
+        plt.figure('ChromosomePainterIBD_%s_%s'%(g1,g2))
+        ax=plt.subplot(111)
+        ax.set_ylim([0,15])
+        ax.set_xlim([-0.1,3.5])
+        ax.set_yticks(range(1,15))
+        ax.set_ylabel('chromosome')
+        ax.set_xlabel('position (MB)')
+        ax.text(2.5,1,'Genomes:\n\t%s\n\t%s'%(g1,g2))
+
+        h=0.4
+        for c,l in zip(chrom_names,chrom_lengths_Mbp):
+            ax.add_patch( fpatch( (0,c-h/2), l, h,
+                                   boxstyle="square,pad=0", # "round,pad=0.03"
+                                   fc=(1,1,1,0),ec=(0,0,0,0.5) ) )
+        for (c,s,e) in pair[['chrom','start','end']].values:
+            ax.add_patch( fpatch( (s/1e6,c-h/2), (e-s)/1e6, h,
+                                   boxstyle="square,pad=0",
+                                   fc=(0,0,0.5,0.2),ec=(0,0,0,0.0) ) )
 
     # IBD fraction network
+    def plot_relation_network():
+        pass
+
+    #plot_IBD_lengths(df)
+    #plot_IBD_map(df)
+    plot_IBD_fractions(shared)
+    for q in [0.1,0.5,0.97,1]:
+        plot_shared_regions(df,q)
 
 def cluster_analysis():
     pass
