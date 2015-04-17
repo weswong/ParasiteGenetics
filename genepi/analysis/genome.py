@@ -130,6 +130,7 @@ def cluster_finder():
 
 def ibd_analysis():
 
+    # Concatenate by-chromosome GERMLINE output
     allFiles = glob.glob('output/germline**.match')
     df = pd.DataFrame()
     list = []
@@ -166,7 +167,8 @@ def ibd_analysis():
     shared=df.groupby(['indId1','indId2'])['dist'].sum()
     shared.sort(ascending=False)
     def sorted_shared_idx(q):
-        return int(len(shared)*(1-q))
+        l=len(shared)
+        return min(l-1,int(l*(1-q)))
 
     # IBD shared fractions
     def plot_IBD_fractions(shared):
@@ -175,19 +177,20 @@ def ibd_analysis():
         plt.xlabel('Total IBD length (cM)')
 
     # pairwise chromosome painter
-    def plot_shared_regions(df,q):
+    def plot_shared_regions(df,q,ax=None,fs=12):
         idx=sorted_shared_idx(q)
         (g1,g2),v=shared.index[idx],shared[idx]
         print('q%d genome similarity: %s and %s (IBD=%0.1f cM)'%(int(q*100),g1,g2,v))
         pair=df.groupby(['indId1','indId2']).get_group((g1,g2))
-        plt.figure('ChromosomePainterIBD_%s_%s'%(g1,g2))
-        ax=plt.subplot(111)
+        if not ax:
+            plt.figure('ChromosomePainterIBD_%s_%s'%(g1,g2))
+            ax=plt.subplot(111)
         ax.set_ylim([0,15])
         ax.set_xlim([-0.1,3.5])
         ax.set_yticks(range(1,15))
         ax.set_ylabel('chromosome')
         ax.set_xlabel('position (MB)')
-        ax.text(2.5,1,'Genomes:\n\t%s\n\t%s'%(g1,g2))
+        ax.text(1.7,0.9,'Genomes:\n\t%s\n\t%s\n\tIBD=%0.1fcM'%(g1,g2,v),fontsize=fs)
 
         h=0.4
         for c,l in zip(chrom_names,chrom_lengths_Mbp):
@@ -199,6 +202,14 @@ def ibd_analysis():
                                    boxstyle="square,pad=0",
                                    fc=(0,0,0.5,0.2),ec=(0,0,0,0.0) ) )
 
+    def sample_shared_pairs(df,quantiles):
+        L=len(quantiles)
+        f,axs=plt.subplots(1,L,num='ChromosomePainterIBD',figsize=(min(16,4*L),4),sharex=True,sharey=True)
+        for i,q in enumerate(quantiles):
+            ax=axs[i] if L>1 else axs
+            plot_shared_regions(df,q,ax,fs=10)
+        f.set_tight_layout(True)
+
     # IBD fraction network
     def plot_relation_network():
         pass
@@ -206,8 +217,8 @@ def ibd_analysis():
     #plot_IBD_lengths(df)
     #plot_IBD_map(df)
     plot_IBD_fractions(shared)
-    for q in [0.1,0.5,0.97,1]:
-        plot_shared_regions(df,q)
+    #plot_shared_regions(df,0.8)
+    sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
 
 def cluster_analysis():
     pass
