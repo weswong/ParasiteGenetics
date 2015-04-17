@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch as fpatch
+import networkx as nx
 
 from genepi.genome import bp_per_cM,chrom_names,chrom_lengths_Mbp
 
@@ -211,14 +212,24 @@ def ibd_analysis():
         f.set_tight_layout(True)
 
     # IBD fraction network
-    def plot_relation_network():
-        pass
+    def plot_relation_network(shared):
+        f=plt.figure('RelationNetworkIBD',facecolor='w',figsize=(6,6))
+        ax=f.add_axes([0,0,1,1],aspect='equal',frameon=False,xticks=[],yticks=[])
+        ax.set_title('IBD network',y=0.95)
+        G=nx.Graph()
+        ibd_spring_scale=5e-4
+        for pair,ibd in shared.iteritems():
+            G.add_edge(*pair,ibd=ibd,weight=ibd*ibd_spring_scale)
+        pos=nx.spring_layout(G,weight='weight')
+        nx.draw_networkx_edges(G,pos,edge_width=1e-3,edge_color='gray',alpha=0.05)
+        nx.draw_networkx_nodes(G,pos,node_color='navy',node_size=60, alpha=0.4)
 
-    #plot_IBD_lengths(df)
-    #plot_IBD_map(df)
+    plot_IBD_lengths(df)
+    plot_IBD_map(df)
     plot_IBD_fractions(shared)
     #plot_shared_regions(df,0.8)
     sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
+    plot_relation_network(shared)
 
 def cluster_analysis():
     pass

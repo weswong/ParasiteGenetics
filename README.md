@@ -28,4 +28,4 @@ Or to do active development on the project:
 
 Internal representation of genome in `Genome` object is as a [`numpy`](https://pypi.python.org/pypi/numpy) array.
 
-Additionally, some example output-processing scripts use the [`matplotlib`](https://pypi.python.org/pypi/matplotlib) and [`pandas`](https://pypi.python.org/pypi/pandas) packages.
+Additionally, some example output-processing scripts use the [`matplotlib`](https://pypi.python.org/pypi/matplotlib), [`pandas`](https://pypi.python.org/pypi/pandas), and [`networkx`](https://pypi.python.org/pypi/networkx) packages.
