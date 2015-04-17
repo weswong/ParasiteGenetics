@@ -5,6 +5,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+try:
+    import seaborn as sns
+    import matplotlib.colors
+    sns.set_style("white",{'grid.color': '.93'})
+    sns.set_context("notebook")
+    cmap = matplotlib.colors.ListedColormap(sns.color_palette("husl",10))
+except:
+    print('Install seaborn package for more pleasing aesthetics.')
+    cmap='hsv'
+
 n_unique=lambda x: len(x.unique())
 
 def onward_transmissions(tx,ax1):
@@ -28,10 +38,14 @@ def genomes_per_infection(tx,ax2):
     ax2.set_xlim([0,8])
 
 def repeat_genomes(tx):
-    repeats=tx.groupby(['gid','day'])['pid'].count().unstack('day')
+    tx['pid']=tx['pid'].map(lambda s: float(s.split('#')[-1]))
+    repeat_groups=tx.groupby(['gid','day'])['pid']
+    #repeats=repeat_groups.count().unstack('day') # counts per timestep
+    most=lambda x:x.value_counts().index[0]
+    repeats=repeat_groups.agg(most).unstack('day') # most common Population.id
     repeats.dropna(thresh=3,inplace=True)
     f=plt.figure('RepeatGenomes')
-    plt.imshow(repeats.values,interpolation='nearest',cmap='Reds',vmin=-15)
+    plt.imshow(repeats.values,interpolation='nearest',cmap=cmap)
     plt.xlabel('Timestep')
     plt.ylabel('Genome ID')
     f.set_tight_layout(True)

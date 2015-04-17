@@ -181,17 +181,15 @@ def ibd_analysis():
     def plot_shared_regions(df,q,ax=None,fs=12):
         idx=sorted_shared_idx(q)
         (g1,g2),v=shared.index[idx],shared[idx]
-        print('q%d genome similarity: %s and %s (IBD=%0.1f cM)'%(int(q*100),g1,g2,v))
+        print('q%02d genome similarity: %s and %s (IBD=%0.1f cM)'%(int(q*100),g1,g2,v))
         pair=df.groupby(['indId1','indId2']).get_group((g1,g2))
         if not ax:
             plt.figure('ChromosomePainterIBD_%s_%s'%(g1,g2))
             ax=plt.subplot(111)
-        ax.set_ylim([0,15])
-        ax.set_xlim([-0.1,3.5])
-        ax.set_yticks(range(1,15))
-        ax.set_ylabel('chromosome')
-        ax.set_xlabel('position (MB)')
-        ax.text(1.7,0.9,'\n\t(%s, %s)\n\tIBD=%0.1fcM'%(g1,g2,v),fontsize=fs)
+        ax.set(ylim=[0,15],xlim=[-0.1,3.5],
+               yticks=range(1,15),
+               ylabel='chromosome',xlabel='position (MB)')
+        ax.text(1.7,0.9,'\n(%s, %s)\nIBD=%0.1fcM'%(g1,g2,v),fontsize=fs)
 
         h=0.4
         for c,l in zip(chrom_names,chrom_lengths_Mbp):
@@ -224,6 +222,7 @@ def ibd_analysis():
         nx.draw_networkx_edges(G,pos,edge_width=1e-3,edge_color='gray',alpha=0.05)
         nx.draw_networkx_nodes(G,pos,node_color='navy',node_size=60, alpha=0.4)
 
+    # Call plotting functions
     plot_IBD_lengths(df)
     plot_IBD_map(df)
     plot_IBD_fractions(shared)
@@ -234,20 +233,27 @@ def ibd_analysis():
 def cluster_analysis():
     pass
 
-def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
-    '''
-    Analysis of the GenomeReport output
-    '''
+# import scipy.io
+# def MATLAB_export(file='simulations/GenomeReport.npz'):
+#     d=load_npz(file)
+#     scipy.io.savemat('GenomeReport.mat',d)
+
+def load_npz(file):
     try:
         with np.load(file) as data:
             A = data['genomes']
             header=data['header']
     except IOError as e:
         sys.exit(e)
+    return {'genomes':A,'header':header}
 
-    #has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
+def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
+    '''
+    Analysis of the GenomeReport output
+    '''
+    d=load_npz(file)
+    genomes=pd.DataFrame(d['genomes'],columns=d['header'])
 
-    genomes=pd.DataFrame(A,columns=header)
     for chrom_name in chrom_names:
         if reformat:
             print('Chromosome %s:'%chrom_name)
@@ -260,6 +266,7 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     cluster_analysis()
 
 if __name__ == '__main__':
+    #MATLAB_export('../../examples/simulations/GenomeReport.npz')    
     genome_analysis('../../examples/simulations/GenomeReport.npz',
                     reformat=False)
     plt.show()
