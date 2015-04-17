@@ -111,16 +111,16 @@ def ibd_finder(chrom_name=''):
         except OSError:
             print('GERMLINE executable not found at %s'%exe)
 
-def cluster_finder():
+def cluster_finder(chrom_name=''):
     '''
     Call out to DASH
     http://www.cs.columbia.edu/~gusev/dash/
     to find clusters of sequences from IBD segments
     '''
     exe=os.path.join(cwd,'bin','dash_cc')
-    cmds=['cat output/germline.match',
+    cmds=['cat output/germline%s.match'%chrom_name,
           'cut -f 1,2,4',
-          '%s output/plink.fam output/dash'%exe]
+          '%s output/plink%s.fam output/dash%s'%(exe,chrom_name,chrom_name)]
     try:
         output=subprocess.check_output('|'.join(cmds), shell=True)
     except subprocess.CalledProcessError as e:
@@ -245,7 +245,6 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     except IOError as e:
         sys.exit(e)
 
-    # TODO: one file per chromosome?
     #has_file=lambda f: os.path.isfile(os.path.join(cwd,'output',f))
 
     genomes=pd.DataFrame(A,columns=header)
@@ -255,11 +254,10 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
             chrom=genomes.filter(regex='\w\.%s\.\w'%chrom_name)
             plink_format(chrom.iloc[::10,:],chrom_name) # 10x downsampling
             ibd_finder(chrom_name)
-            # TODO: handling of multiple chromosomes?
-            #cluster_finder()
+            cluster_finder(chrom_name)
 
     ibd_analysis()
-    #cluster_analysis()
+    cluster_analysis()
 
 if __name__ == '__main__':
     genome_analysis('../../examples/simulations/GenomeReport.npz',
