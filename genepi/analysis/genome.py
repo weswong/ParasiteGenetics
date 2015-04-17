@@ -159,7 +159,7 @@ def ibd_analysis():
         for ichrom,(chrom,ibd_counts) in enumerate(counts.groupby(level=0)):
             ax=axs[ichrom//ncol,ichrom%ncol] if nrow*ncol>1 else axs
             for idx,(rng,cnt) in enumerate(ibd_counts[chrom].iteritems()):
-                ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.2+1.2*np.log10(cnt),c='navy',alpha=0.8)
+                ax.plot([x/1e6 for x in rng],[idx]*2,linewidth=0.1+0.6*np.log10(cnt),c='navy',alpha=0.5)
                 ax.set_title('Chromosome %s'%chrom,y=0.85,x=0.25,fontsize=10)
                 ax.get_yaxis().set_visible(False)
         f.set_tight_layout(True)
@@ -191,7 +191,7 @@ def ibd_analysis():
         ax.set_yticks(range(1,15))
         ax.set_ylabel('chromosome')
         ax.set_xlabel('position (MB)')
-        ax.text(1.7,0.9,'Genomes:\n\t%s\n\t%s\n\tIBD=%0.1fcM'%(g1,g2,v),fontsize=fs)
+        ax.text(1.7,0.9,'\n\t(%s, %s)\n\tIBD=%0.1fcM'%(g1,g2,v),fontsize=fs)
 
         h=0.4
         for c,l in zip(chrom_names,chrom_lengths_Mbp):
@@ -205,7 +205,7 @@ def ibd_analysis():
 
     def sample_shared_pairs(df,quantiles):
         L=len(quantiles)
-        f,axs=plt.subplots(1,L,num='ChromosomePainterIBD',figsize=(min(16,4*L),4),sharex=True,sharey=True)
+        f,axs=plt.subplots(1,L,num='ChromosomePainterIBD',figsize=(min(18,4.5*L),4),sharex=True,sharey=True)
         for i,q in enumerate(quantiles):
             ax=axs[i] if L>1 else axs
             plot_shared_regions(df,q,ax,fs=10)
@@ -215,7 +215,7 @@ def ibd_analysis():
     def plot_relation_network(shared):
         f=plt.figure('RelationNetworkIBD',facecolor='w',figsize=(6,6))
         ax=f.add_axes([0,0,1,1],aspect='equal',frameon=False,xticks=[],yticks=[])
-        ax.set_title('IBD network',y=0.95)
+        ax.set_title('IBD network',y=0.95,color=(0.1,0.1,0.1))
         G=nx.Graph()
         ibd_spring_scale=5e-4
         for pair,ibd in shared.iteritems():
@@ -227,7 +227,7 @@ def ibd_analysis():
     plot_IBD_lengths(df)
     plot_IBD_map(df)
     plot_IBD_fractions(shared)
-    #plot_shared_regions(df,0.8)
+    plot_shared_regions(df,0.8)
     sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
     plot_relation_network(shared)
 
