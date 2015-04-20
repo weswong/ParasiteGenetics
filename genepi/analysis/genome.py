@@ -10,6 +10,16 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch as fpatch
 import networkx as nx
 
+try:
+    import seaborn as sns
+    import matplotlib.colors
+    sns.set_style("white",{'grid.color': '.93'})
+    sns.set_context("notebook")
+    cmap = matplotlib.colors.ListedColormap(sns.color_palette("husl",10))
+except:
+    print('Install seaborn package for more pleasing aesthetics.')
+    cmap='hsv'
+
 from genepi.genome import bp_per_cM,chrom_names,chrom_lengths_Mbp
 
 cwd=os.path.dirname(os.path.realpath(__file__))
@@ -218,16 +228,22 @@ def ibd_analysis():
         ibd_spring_scale=5e-4
         for pair,ibd in shared.iteritems():
             G.add_edge(*pair,ibd=ibd,weight=ibd*ibd_spring_scale)
+        gene_pop_file='output/genome_population_map.csv'
+        if os.path.exists(gene_pop_file):
+            gene_pop_map=pd.read_csv(gene_pop_file,header=None,index_col=0,names=['gid','pid'])
+            nc=[]
+            for n in G.nodes_iter():
+                nc.append(gene_pop_map.loc[int(n.replace('g',''))]['pid'])
         pos=nx.spring_layout(G,weight='weight')
         nx.draw_networkx_edges(G,pos,edge_width=1e-3,edge_color='gray',alpha=0.05)
-        nx.draw_networkx_nodes(G,pos,node_color='navy',node_size=60, alpha=0.4)
+        nx.draw_networkx_nodes(G,pos,node_color=nc,node_size=60,alpha=0.4,cmap=cmap)
 
     # Call plotting functions
-    plot_IBD_lengths(df)
-    plot_IBD_map(df)
-    plot_IBD_fractions(shared)
-    plot_shared_regions(df,0.8)
-    sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
+    # plot_IBD_lengths(df)
+    # plot_IBD_map(df)
+    # plot_IBD_fractions(shared)
+    # plot_shared_regions(df,0.8)
+    # sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
     plot_relation_network(shared)
 
 def cluster_analysis():
@@ -266,7 +282,7 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
     cluster_analysis()
 
 if __name__ == '__main__':
-    #MATLAB_export('../../examples/simulations/GenomeReport.npz')    
+    #MATLAB_export('../../examples/simulations/GenomeReport.npz')
     genome_analysis('../../examples/simulations/GenomeReport.npz',
                     reformat=False)
     plt.show()
