@@ -16,7 +16,7 @@ def init_genome():
 
 def populate_demographics(s):
     #s.populate_from_demographics('single_node')
-    s.populate_from_demographics('multi_node',N=10,V=(0.18,1e-3,8),M=5e-4)
+    s.populate_from_demographics('multi_node',N=10,V=(0.18,3e-3,8),M=5e-4)
 
 def add_reports(s):
     s.add_reports(PopulationInfectionReport)

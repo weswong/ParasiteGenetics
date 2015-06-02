@@ -29,7 +29,10 @@ class Population:
         if n_infections > n_humans:
             raise Exception('Initial infections not to exceed initial humans.')
         for _ in range(n_infections):
-            self.add_new_infection([gn.Genome.from_allele_freq()])
+            init_inf=self.add_new_infection([gn.Genome.from_allele_freq()])
+            init_transmission=inf.Transmission(infectionId=init_inf.id,
+                                               genome=init_inf.genomes[0])
+            self.notify_transmission([init_transmission])
         log.debug(self)
 
     def __str__(self):
@@ -66,7 +69,8 @@ class Population:
     def notify_transmission(self,transmission,infectionId=None):
         try:
             for t in transmission:
-                t.infectionId=infectionId
+                if infectionId:
+                    t.infectionId=infectionId
                 t.populationId=self.id
                 t.day=self.parent.day
                 self.parent.notify('infection.transmit',t)

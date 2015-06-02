@@ -1,3 +1,4 @@
+import os
 import csv
 import sys
 
@@ -43,6 +44,8 @@ def repeat_genomes(tx):
     #repeats=repeat_groups.count().unstack('day') # counts per timestep
     most=lambda x:x.value_counts().index[0]
     repeats=repeat_groups.agg(most).unstack('day') # most common Population.id
+    if not os.path.exists('output'):
+        os.mkdir('output')
     tx.groupby(['gid'])['pid'].agg(most).to_csv('output/genome_population_map.csv')
     repeats.dropna(thresh=3,inplace=True)
     f=plt.figure('RepeatGenomes')

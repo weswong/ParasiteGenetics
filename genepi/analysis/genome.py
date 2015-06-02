@@ -229,21 +229,27 @@ def ibd_analysis():
         for pair,ibd in shared.iteritems():
             G.add_edge(*pair,ibd=ibd,weight=ibd*ibd_spring_scale)
         gene_pop_file='output/genome_population_map.csv'
+        nc=[]
         if os.path.exists(gene_pop_file):
             gene_pop_map=pd.read_csv(gene_pop_file,header=None,index_col=0,names=['gid','pid'])
-            nc=[]
             for n in G.nodes_iter():
-                nc.append(gene_pop_map.loc[int(n.replace('g',''))]['pid'])
+                genome_id=int(n.replace('g',''))
+                if genome_id in gene_pop_map.index:
+                    nc.append(gene_pop_map.loc[genome_id]['pid'])
+                else:
+                    print('WARNING: no transmissions of genome id=%d'%genome_id)
+                    nc.append(0)
         pos=nx.spring_layout(G,weight='weight')
         nx.draw_networkx_edges(G,pos,edge_width=1e-3,edge_color='gray',alpha=0.05)
+        nc=nc if nc else 'black'
         nx.draw_networkx_nodes(G,pos,node_color=nc,node_size=60,alpha=0.4,cmap=cmap)
 
     # Call plotting functions
-    # plot_IBD_lengths(df)
-    # plot_IBD_map(df)
-    # plot_IBD_fractions(shared)
-    # plot_shared_regions(df,0.8)
-    # sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
+    plot_IBD_lengths(df)
+    plot_IBD_map(df)
+    plot_IBD_fractions(shared)
+    plot_shared_regions(df,0.8)
+    sample_shared_pairs(df,quantiles=[0.03,0.2,0.5,0.8,0.97])
     plot_relation_network(shared)
 
 def cluster_analysis():
@@ -274,15 +280,15 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
         if reformat:
             print('Chromosome %s:'%chrom_name)
             chrom=genomes.filter(regex='\w\.%s\.\w'%chrom_name)
-            plink_format(chrom.iloc[::10,:],chrom_name) # 10x downsampling
+            plink_format(chrom.iloc[::100,:],chrom_name) # 100x downsampling
             ibd_finder(chrom_name)
-            cluster_finder(chrom_name)
+            #cluster_finder(chrom_name)
 
     ibd_analysis()
-    cluster_analysis()
+    #cluster_analysis()
 
 if __name__ == '__main__':
     #MATLAB_export('../../examples/simulations/GenomeReport.npz')
     genome_analysis('../../examples/simulations/GenomeReport.npz',
-                    reformat=False)
+                    reformat=True)
     plt.show()
