@@ -6,6 +6,8 @@ from collections import defaultdict
 import logging
 log = logging.getLogger(__name__)
 
+import numpy as np
+
 import utils
 import genome as gn
 from human import HumanIndividual
@@ -56,21 +58,22 @@ class Transmission:
     Characteristics of transmitted sporozoite and parent gametocytes
     '''
     def __init__(self,parentGenomeIds=(None,None),genome=None,
-                      parentInfectionId=None,infectionId=None,
+                      parentInfection=None,infection=None,
                       populationId=None,day=None):
         # sporozoite properties
         self.genome=genome
-        self.infectionId=infectionId
+        self.infection=infection
         # male + female gametocyte properties
         self.parentGenomeIds=parentGenomeIds
-        self.parentInfectionId=parentInfectionId
+        self.parentInfection=parentInfection
         # other info
         self.populationId=populationId
         self.day=day
 
     def to_tuple(self):
         return (self.day,self.populationId,
-                self.infectionId,self.parentInfectionId,
+                getattr(self.infection,'id',None),
+                getattr(self.parentInfection,'id',None),
                 self.parentGenomeIds[0],self.parentGenomeIds[1],
                 self.genome.id)
 
@@ -102,7 +105,8 @@ class Infection:
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         self.infectiousness.send(dt)
-        transmit_rate = vectorial_capacity*dt*next(self.infectiousness)
+        fitness = np.mean([g.fitness() for g in self.genomes]) # TODO: something other than mean?
+        transmit_rate = vectorial_capacity*dt*next(self.infectiousness)*fitness
         n_transmit=utils.poissonRandom(transmit_rate)
         log.debug('  id=%d: infection_timer=%d  transmit_rate=%0.2f  n_transmit=%d',
                   self.id,self.infection_timer,transmit_rate,n_transmit)
@@ -113,7 +117,7 @@ class Infection:
         if self.n_strains() == 1:
             clone=self.genomes[0]
             log.debug('Clonal transmission of genome id=%d'%clone.id)
-            return [Transmission((clone.id,clone.id),clone,self.id)]
+            return [Transmission((clone.id,clone.id),clone,self)]
         n_hep,n_ooc=sample_n_hepatocytes(),sample_n_oocysts()
         log.debug('Sample %d hepatocyte(s) from %d oocyst(s):',n_hep,n_ooc)
         if n_hep > max_transmit_strains:
@@ -123,7 +127,7 @@ class Infection:
         gametocyte_pairs=self.sample_gametocyte_pairs(len(n_products))
         sporozoites=gn.distinct_sporozoites_from(gametocyte_pairs,n_products)
         for s in sporozoites:
-            s.parentInfectionId=self.id
+            s.parentInfection=self
         return sporozoites
 
     def sample_gametocyte_pairs(self, N):
@@ -142,7 +146,8 @@ class Infection:
     def gametocyte_strain_cdf(self):
         # TODO: something more skewed
         #       to account for blood-stage dynamics
-        return utils.accumulate_cdf([1]*self.n_strains())
+        #return utils.accumulate_cdf([1]*self.n_strains()) # random
+        return utils.accumulate_cdf([g.fitness() for g in self.genomes]) # fitness weighted
 
     def n_strains(self):
         return len(self.genomes)

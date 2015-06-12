@@ -29,10 +29,7 @@ class Population:
         if n_infections > n_humans:
             raise Exception('Initial infections not to exceed initial humans.')
         for _ in range(n_infections):
-            init_inf=self.add_new_infection([gn.Genome.from_allele_freq()])
-            init_transmission=inf.Transmission(infectionId=init_inf.id,
-                                               genome=init_inf.genomes[0])
-            self.notify_transmission([init_transmission])
+            self.add_infection_from_genomes([gn.Genome.from_allele_freq()])
         log.debug(self)
 
     def __str__(self):
@@ -40,6 +37,13 @@ class Population:
         s += 'humans=%d '     % self.n_humans()
         s += 'infections=%d ' % len(self.infecteds)
         return s
+
+    def add_infection_from_genomes(self,genomes):
+        ii=self.add_new_infection(genomes)
+        if ii:
+            for g in ii.genomes:
+                tx=inf.Transmission(infection=ii, genome=g)
+                self.notify_transmission([tx])
 
     def add_new_infection(self,genomes,individual=None):
         if not individual:
@@ -60,20 +64,21 @@ class Population:
                 i.infection.merge_infection(genomes)
                 log.debug('Merged strains (idx=%d, id=%d):\n%s',
                           idx,i.id,i.infection)
-                self.notify_transmission(transmission,i.infection.id)
+                self.notify_transmission(transmission,i.infection)
             else:
                 log.debug('New infected individual:\n%s',genomes)
                 infection=self.add_new_infection(genomes)
-                self.notify_transmission(transmission,infection.id)
+                if infection:
+                    self.notify_transmission(transmission,infection)
 
-    def notify_transmission(self,transmission,infectionId=None):
+    def notify_transmission(self,transmission,infection=None):
         try:
             for t in transmission:
-                if infectionId:
-                    t.infectionId=infectionId
+                if infection:
+                    t.infection=infection
                 t.populationId=self.id
                 t.day=self.parent.day
-                self.parent.notify('infection.transmit',t)
+            self.parent.notify('infection.transmit',transmission)
         except AttributeError:
             pass
 

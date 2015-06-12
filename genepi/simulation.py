@@ -1,5 +1,6 @@
 import math
 import random
+from Queue import PriorityQueue
 from collections import defaultdict
 from importlib import import_module
 
@@ -36,6 +37,7 @@ class Simulation:
         self.cohort_migrants=defaultdict(int)
         self.reports=[]
         self.listeners=defaultdict(list)
+        self.events=PriorityQueue()
         gn.Genome.set_simulation_ref(self)
 
     def populate_from_demographics(self,mod='single_node',*args,**kwargs):
@@ -60,6 +62,12 @@ class Simulation:
         dt=self.params.sim_tstep
         self.day+=dt
         log.info('\nt=%d'%self.day)
+        while True:
+            if self.events.empty() or self.events.queue[0][0] > self.day:
+                break
+            evt = self.events.get()[1]
+            log.info('Executing event.')
+            evt(self)
         for p in self.populations.values():
             p.update(dt)
         self.resolve_migration()
@@ -76,6 +84,9 @@ class Simulation:
         for dest,n_emigrants in self.cohort_migrants.items():
             self.populations[dest].susceptibles.n_humans+=n_emigrants
         self.cohort_migrants.clear()
+
+    def add_event(self,day,event):
+        self.events.put((day,event))
 
     def add_reports(self,*args):
         for report_class in args:

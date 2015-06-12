@@ -269,7 +269,7 @@ def load_npz(file):
         sys.exit(e)
     return {'genomes':A,'header':header}
 
-def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
+def genome_analysis(file='simulations/GenomeReport.npz',reformat=True,sample=100):
     '''
     Analysis of the GenomeReport output
     '''
@@ -280,7 +280,7 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True):
         if reformat:
             print('Chromosome %s:'%chrom_name)
             chrom=genomes.filter(regex='\w\.%s\.\w'%chrom_name)
-            plink_format(chrom.iloc[::100,:],chrom_name) # 100x downsampling
+            plink_format(chrom.iloc[::sample,:],chrom_name) # default: 100x downsampling
             ibd_finder(chrom_name)
             #cluster_finder(chrom_name)
 

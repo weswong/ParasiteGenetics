@@ -6,6 +6,7 @@ log = logging.getLogger(__name__)
 import numpy as np
 
 from .. import genome as gn
+from ..infection import Transmission
 
 class Listener:
     def notify(self,*args): pass
@@ -26,9 +27,12 @@ class TransmissionGeneticsReport(Listener):
     def notify(self,*args):
         try:
             transmission=args[0]
+            assert isinstance(transmission,list)
+            for t in transmission:
+                assert isinstance(t,Transmission)
+                self.data.append(t.to_tuple())
         except:
-            raise Exception('Expected Transmission object as first argument.')
-        self.data.append(transmission.to_tuple())
+            raise Exception('Expected list of Transmission objects as first argument.')                
 
     def write(self, working_directory):
         filename=os.path.join(working_directory, self.report_filename)
@@ -55,6 +59,7 @@ class GenomeReport(Listener):
     def notify(self,*args):
         try:
             g=args[0]
+            assert isinstance(g,gn.Genome)
         except:
             raise Exception('Expected Genome object as first argument.')
         barcode=g.barcode()

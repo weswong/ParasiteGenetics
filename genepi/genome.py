@@ -71,12 +71,15 @@ def set_chrom_breaks():
 def n_bins_from(bp):
     return int(math.ceil(bp/Genome.bin_size_bp))
 
+def snp_bin_from_chrom_pos(chrom,pos):
+    return int(pos/Genome.bin_size_bp) + Genome.chrom_breaks[Genome.chrom_idxs[chrom]]
+
 def set_binned_SNPs(SNPs):
     Genome.SNP_bins=[]
     Genome.SNP_freqs=[]
     last_snp,last_bin,max_freq=(None,0,0)
     for snp in SNPs:
-        snp_bin=int(snp.pos/Genome.bin_size_bp) + Genome.chrom_breaks[Genome.chrom_idxs[snp.chrom]]
+        snp_bin=snp_bin_from_chrom_pos(snp.chrom,snp.pos)
         if last_snp and (snp.chrom,snp_bin)==(last_snp.chrom,last_bin):
             log.debug('overlap at chrom %d bin %d',snp.chrom,snp_bin)
             if snp.freq > max_freq:
@@ -89,8 +92,16 @@ def set_binned_SNPs(SNPs):
             Genome.SNP_names.append('Pf.%s.%s'%(snp.chrom,snp.pos))
             last_snp,last_bin=(snp,snp_bin)
 
+    Genome.SNP_fitness = np.ones(genome_length())
+
     log.info('%d of %d unique SNPs after discretization at %dbp binning',
              len(Genome.SNP_bins),len(SNPs),Genome.bin_size_bp)
+
+def add_locus(chrom,pos,name,fitness,freq=0):
+    Genome.SNP_bins.append(snp_bin_from_chrom_pos(chrom,pos))
+    Genome.SNP_names.append(name)
+    Genome.SNP_freqs.append(freq)
+    Genome.SNP_fitness = np.append(Genome.SNP_fitness,fitness)
 
 def reference_genome():
     return np.zeros(genome_length(),dtype=np.uint8)
@@ -202,6 +213,7 @@ class Genome:
     SNP_bins      = [] # locations of variable positions on genome
     SNP_names     = [] # chrom.pos encoding of binned SNPs
     SNP_freqs     = [] # minor-allele frequency of binned SNPs
+    SNP_fitness   = [] # relative fitness at each locus
     bin_size_bp   = [] # base pairs per genome bin
 
     # TODO: find a better thread-safe way of letting Genome know what
@@ -211,8 +223,10 @@ class Genome:
     def set_simulation_ref(cls,sim):
         cls.sim=sim
 
-    def __init__(self,genome):
+    def __init__(self,genome,mod_fns=[]):
         self.genome=genome
+        for fn in mod_fns:
+            fn(self.genome)
         h=hash(self)
         id=Genome.hash_to_id.get(h,None)
         #id=None
@@ -242,16 +256,20 @@ class Genome:
         return cls(reference_genome())
 
     @classmethod
-    def from_allele_freq(cls):
+    def from_allele_freq(cls,mod_fns=[]):
         rands=np.random.random_sample((num_SNPs(),))
         barcode=rands<Genome.SNP_freqs
-        return cls.from_barcode(barcode)
+        return cls.from_barcode(barcode,mod_fns)
 
     @classmethod
-    def from_barcode(cls,barcode):
+    def from_barcode(cls,barcode,mod_fns=[]):
         genome=reference_genome()
         np.put(genome,Genome.SNP_bins,barcode)
-        return cls(genome)
+        return cls(genome,mod_fns)
+
+    def fitness(self):
+        m=self.SNP_fitness[self.genome!=0] # NB: assuming binary SNPs
+        return np.product(m) if m.size else 1.
 
     def barcode(self,sites=None):
         if not sites:
