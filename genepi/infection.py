@@ -20,7 +20,7 @@ def infectiousness(t):
     if t<incubation:
         return 0
     else:
-        # TODO: choose functional form based on data!
+        # TODO: choose functional form based on EMOD DTK calibration
         mean_prob=0.8*math.exp(-t/50.)+0.05*math.exp(-t/300.)
         return min(1.0,max(0,mean_prob+random.gauss(0,0.1)))
 
@@ -145,7 +145,7 @@ class Infection:
 
     def gametocyte_strain_cdf(self):
         # TODO: something more skewed
-        #       to account for blood-stage dynamics
+        #       to account for blood-stage dynamics, e.g. in EMOD DTK
         #return utils.accumulate_cdf([1]*self.n_strains()) # random
         return utils.accumulate_cdf([g.fitness() for g in self.genomes]) # fitness weighted
 

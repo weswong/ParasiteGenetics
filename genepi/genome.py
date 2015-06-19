@@ -1,4 +1,5 @@
 import math
+import bisect
 import random
 import itertools
 from collections import defaultdict
@@ -77,6 +78,7 @@ def snp_bin_from_chrom_pos(chrom,pos):
 def set_binned_SNPs(SNPs):
     Genome.SNP_bins=[]
     Genome.SNP_freqs=[]
+    Genome.SNP_names=[]
     last_snp,last_bin,max_freq=(None,0,0)
     for snp in SNPs:
         snp_bin=snp_bin_from_chrom_pos(snp.chrom,snp.pos)
@@ -92,16 +94,23 @@ def set_binned_SNPs(SNPs):
             Genome.SNP_names.append('Pf.%s.%s'%(snp.chrom,snp.pos))
             last_snp,last_bin=(snp,snp_bin)
 
-    Genome.SNP_fitness = np.ones(genome_length())
+    Genome.bin_fitness = np.ones(genome_length())
 
     log.info('%d of %d unique SNPs after discretization at %dbp binning',
              len(Genome.SNP_bins),len(SNPs),Genome.bin_size_bp)
 
 def add_locus(chrom,pos,name,fitness,freq=0):
-    Genome.SNP_bins.append(snp_bin_from_chrom_pos(chrom,pos))
-    Genome.SNP_names.append(name)
-    Genome.SNP_freqs.append(freq)
-    Genome.SNP_fitness = np.append(Genome.SNP_fitness,fitness)
+    add_bin = snp_bin_from_chrom_pos(chrom,pos)
+    if add_bin in Genome.SNP_bins:
+        idx = bisect.bisect_left(Genome.SNP_bins, add_bin)
+        log.warning('SNP already exists at bin %d: chrom,pos=(%d,%d)' % (add_bin, chrom, pos))        
+        Genome.SNP_names[idx] = name
+        Genome.SNP_freqs[idx] = freq
+    else:
+        Genome.SNP_bins.append(add_bin)
+        Genome.SNP_names.append(name)
+        Genome.SNP_freqs.append(freq)
+    Genome.bin_fitness[add_bin] = fitness
 
 def reference_genome():
     return np.zeros(genome_length(),dtype=np.uint8)
@@ -213,7 +222,7 @@ class Genome:
     SNP_bins      = [] # locations of variable positions on genome
     SNP_names     = [] # chrom.pos encoding of binned SNPs
     SNP_freqs     = [] # minor-allele frequency of binned SNPs
-    SNP_fitness   = [] # relative fitness at each locus
+    bin_fitness   = [] # relative fitness at each binned site
     bin_size_bp   = [] # base pairs per genome bin
 
     # TODO: find a better thread-safe way of letting Genome know what
@@ -235,7 +244,8 @@ class Genome:
         else:
             self.id=Genome.id.next()
             Genome.hash_to_id[h]=self.id
-            Genome.sim.notify('genome.init',self)
+            if Genome.sim:
+                Genome.sim.notify('genome.init',self)
         log.debug('Genome: id=%d', self.id)
         log.debug('%s', self)
 
@@ -268,7 +278,7 @@ class Genome:
         return cls(genome,mod_fns)
 
     def fitness(self):
-        m=self.SNP_fitness[self.genome!=0] # NB: assuming binary SNPs
+        m=self.bin_fitness[self.genome!=0] # NB: assuming binary SNPs
         return np.product(m) if m.size else 1.
 
     def barcode(self,sites=None):
