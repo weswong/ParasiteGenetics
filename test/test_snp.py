@@ -1,17 +1,23 @@
-import math
 import unittest
 
 import numpy as np
+from scipy.stats import beta
 
 import genepi.genome as gn
 from genepi.snp.snp import SNP
 from genepi.event.drug import resistant_sites
 
+def binom_interval(success, total, confint=0.95):
+    quantile = (1 - confint) / 2.
+    lower = beta.ppf(quantile, success, total - success + 1)
+    upper = beta.ppf(1 - quantile, success + 1, total - success)
+    return (max(0.0,lower), min(1.0,upper))
+
 class TestBarcode(unittest.TestCase):
 
     nSNP = 24 # number of barcode SNPs
-    nRandom = 100 # number of random allele-frequency tests
-    nSigma = 4 # probabilistic cut on binomial allele frequency test
+    nRandom = 30 # number of random allele-frequency tests
+    significance = 0.01 # significance level before Bonferroni correction
 
     def setUp(self):
         gn.initialize_from('barcode')
@@ -35,12 +41,14 @@ class TestBarcode(unittest.TestCase):
             barcode += genome.barcode()
         barcode /= self.nRandom
         for f1,f2 in zip(list(barcode),gn.Genome.SNP_freqs):
-            self.assertAlmostEqual(f1,f2,delta=self.nSigma*math.sqrt(f2*(1-f2)/self.nRandom))
+            lower,upper = binom_interval(f1*self.nRandom, self.nRandom, 1.-self.significance/self.nSNP)
+            if not lower <= f2 <= upper:
+                print('%f <= %f <= %f ? for p = %f' % (lower,f2,upper,f1))
+            self.assertTrue(lower <= f2 <= upper)
 
 class TestFullSequence(TestBarcode):
 
     nSNP = 9311 # number of full-sequence SNPs filtered at 3% and discretized to 1000bp
-    nSigma = 5 # increase to 5-sigma for many more allele draws
 
     def setUp(self):
         gn.initialize_from('sequence', 1000, 0.03)
@@ -53,7 +61,7 @@ class TestFullSequence(TestBarcode):
         gn.add_locus(chrom, pos, 'Pf.%d.%d' % (chrom, pos), fitness = 0.95)
         self.assertListEqual(gn.Genome.SNP_bins, old_snp_bins)
         self.assertEqual(gn.Genome.bin_fitness[add_bin], 0.95)
-        # Test addition of a new SNP to follow a few bins away from    
+        # Test addition of a new SNP to follow a few bins away from
         offset = 2000
         another_bin = gn.snp_bin_from_chrom_pos(chrom, pos-offset)
         gn.add_locus(chrom, pos-offset, 'Pf.%d.%d' % (chrom, pos-offset), fitness = 0.5)
@@ -77,6 +85,13 @@ class TestChromosomes(TestBarcode):
         self.assertEqual(gn.snp_bin_from_chrom_pos(1,100), 0)
         self.assertEqual(gn.snp_bin_from_chrom_pos(3,100), 2)
 
+    def test_fitness(self):
+        gn.add_locus(7, 100, 'TEST', fitness = 0.5)
+        g1 = gn.Genome.from_reference()
+        self.assertEqual(g1.fitness(), 1.0)
+        g2 = gn.Genome.from_barcode([1]*gn.num_SNPs())
+        self.assertEqual(g2.fitness(), 0.5)    
+
 def test_closest_snp():
     snps = [SNP(11,5), SNP(11,7), SNP(12,1)]
     assert(gn.find_closest_SNPs(snps) == 2)
@@ -89,3 +104,5 @@ def test_rounded_binning():
 
 if __name__ == '__main__':
     unittest.main()
+    test_closest_snp()
+    test_rounded_binning()

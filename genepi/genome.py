@@ -103,7 +103,7 @@ def add_locus(chrom,pos,name,fitness,freq=0):
     add_bin = snp_bin_from_chrom_pos(chrom,pos)
     if add_bin in Genome.SNP_bins:
         idx = bisect.bisect_left(Genome.SNP_bins, add_bin)
-        log.warning('SNP already exists at bin %d: chrom,pos=(%d,%d)' % (add_bin, chrom, pos))        
+        log.warning('SNP already exists at bin %d: chrom,pos=(%d,%d)' % (add_bin, chrom, pos))
         Genome.SNP_names[idx] = name
         Genome.SNP_freqs[idx] = freq
     else:
@@ -150,6 +150,8 @@ def crossover(c1,c2,xpoints):
     return c3,c4
 
 def meiosis(in1,in2,N=4):
+    if N > 4:
+        raise IndexError('Maximum of four distinct meiotic products to sample.')
     genomes=[reference_genome() for _ in range(4)]
     for idx,(start,end) in enumerate(utils.pairwise(Genome.chrom_breaks)):
         c1,c2=in1.genome[start:end],in2.genome[start:end]
