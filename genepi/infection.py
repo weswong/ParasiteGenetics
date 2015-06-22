@@ -82,8 +82,11 @@ class Infection:
     def update(self,dt,vectorial_capacity):
         self.infection_timer  -= dt
         self.infectiousness.send(dt)
-        fitness = np.mean([g.fitness() for g in self.genomes]) # TODO: something other than mean?
-        transmit_rate = vectorial_capacity*dt*next(self.infectiousness)*fitness
+        fitness = [g.fitness() for g in self.genomes]
+        if not fitness:
+            return [] # no genomes (e.g. from drug clearance)
+        mean_fitness = np.mean(fitness) # TODO: something other than mean?
+        transmit_rate = vectorial_capacity*dt*next(self.infectiousness)*mean_fitness
         n_transmit=utils.poissonRandom(transmit_rate)
         log.debug('  id=%d: infection_timer=%d  transmit_rate=%0.2f  n_transmit=%d',
                   self.id,self.infection_timer,transmit_rate,n_transmit)

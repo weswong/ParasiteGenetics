@@ -72,15 +72,12 @@ class Population:
                     self.notify_transmission(transmission,infection)
 
     def notify_transmission(self,transmission,infection=None):
-        try:
-            for t in transmission:
-                if infection:
-                    t.infection=infection
-                t.populationId=self.id
-                t.day=self.parent.day
-            self.parent.notify('infection.transmit',transmission)
-        except AttributeError:
-            pass
+        for t in transmission:
+            if infection:
+                t.infection=infection
+            t.populationId=self.id
+            t.day=self.parent.day
+        self.parent.notify('infection.transmit',transmission)
 
     def update(self,dt):
         transmissions=[]
