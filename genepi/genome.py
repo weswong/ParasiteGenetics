@@ -19,7 +19,7 @@ bp_per_morgan = 1.5e6
 bp_per_cM     = bp_per_morgan/1e2
 bp_per_Mbp    = 1e6
 
-# mutation_prob = ??       # per day, per position
+# mutation_prob = 9.7e-9 / 2.0       #Bopp et al, 2013. Miottoic evolution of P falciparum shows a stable core genome but recombination in antigen families  per day, per position
 
 chrom_names       = range(1,15) # + ['MT','Api']
 chrom_lengths_Mbp = [ 0.643, 0.947,  1.1,  1.2,   1.35,  1.42,  1.45,
