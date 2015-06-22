@@ -11,6 +11,7 @@ import numpy as np
 import utils
 import genome as gn
 from human import HumanIndividual
+from transmission import Transmission
 
 max_transmit_strains=10
 
@@ -21,8 +22,8 @@ def infectiousness(t):
         return 0
     else:
         # TODO: choose functional form based on EMOD DTK calibration
-        mean_prob=0.8*math.exp(-t/50.)+0.05*math.exp(-t/300.)
-        return min(1.0,max(0,mean_prob+random.gauss(0,0.1)))
+        mean_prob = 0.8 * math.exp(-t/50.) + 0.05 * math.exp(-t/300.)
+        return min(1.0, max(1e-6, mean_prob+random.gauss(0, 0.1)))
 
 def infectious_generator(t=0):
     while True:
@@ -52,30 +53,6 @@ def sample_oocyst_products(n_hep,n_ooc):
     n_products_by_oocyst = [len(v) for k,v in product_idxs.items()]
     log.debug('meiotic products to be sampled per oocyst:%s'%n_products_by_oocyst)
     return n_products_by_oocyst
-
-class Transmission:
-    '''
-    Characteristics of transmitted sporozoite and parent gametocytes
-    '''
-    def __init__(self,parentGenomeIds=(None,None),genome=None,
-                      parentInfection=None,infection=None,
-                      populationId=None,day=None):
-        # sporozoite properties
-        self.genome=genome
-        self.infection=infection
-        # male + female gametocyte properties
-        self.parentGenomeIds=parentGenomeIds
-        self.parentInfection=parentInfection
-        # other info
-        self.populationId=populationId
-        self.day=day
-
-    def to_tuple(self):
-        return (self.day,self.populationId,
-                getattr(self.infection,'id',None),
-                getattr(self.parentInfection,'id',None),
-                self.parentGenomeIds[0],self.parentGenomeIds[1],
-                self.genome.id)
 
 class Infection:
     '''

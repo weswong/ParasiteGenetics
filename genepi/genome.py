@@ -13,7 +13,7 @@ import numpy as np # for fast meiosis operations on arrays
 
 import utils
 from snp.snp import SNP
-from infection import Transmission
+from transmission import Transmission
 
 bp_per_morgan = 1.5e6
 bp_per_cM     = bp_per_morgan/1e2

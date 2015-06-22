@@ -1,17 +1,11 @@
 import unittest
 
 import numpy as np
-from scipy.stats import beta
 
 import genepi.genome as gn
 from genepi.snp.snp import SNP
 from genepi.event.drug import resistant_sites
-
-def binom_interval(success, total, confint=0.95):
-    quantile = (1 - confint) / 2.
-    lower = beta.ppf(quantile, success, total - success + 1)
-    upper = beta.ppf(1 - quantile, success + 1, total - success)
-    return (max(0.0,lower), min(1.0,upper))
+from test_utils import binom_interval
 
 class TestBarcode(unittest.TestCase):
 
@@ -90,7 +84,7 @@ class TestChromosomes(TestBarcode):
         g1 = gn.Genome.from_reference()
         self.assertEqual(g1.fitness(), 1.0)
         g2 = gn.Genome.from_barcode([1]*gn.num_SNPs())
-        self.assertEqual(g2.fitness(), 0.5)    
+        self.assertEqual(g2.fitness(), 0.5)
 
 def test_closest_snp():
     snps = [SNP(11,5), SNP(11,7), SNP(12,1)]
@@ -103,6 +97,6 @@ def test_rounded_binning():
     assert(gn.get_rounded_binning(12345, ndigits=4) == 12340)
 
 if __name__ == '__main__':
-    unittest.main()
     test_closest_snp()
     test_rounded_binning()
+    unittest.main()
