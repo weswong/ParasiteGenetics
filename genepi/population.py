@@ -9,6 +9,7 @@ import genome as gn
 import infection as inf
 from human import HumanCohort,HumanIndividual
 from migration import MigrationInfo
+from scipy.stats import rv_discrete
 
 class Population:
     '''
@@ -19,7 +20,8 @@ class Population:
                  n_humans,
                  n_infections=0,
                  vectorial_capacity_fn=lambda t:0.05,
-                 migration_rates={}):
+                 migration_rates={}, 
+                 coi={1:0.2, 2:0.2, 3:0.2, 4:0.2, 5:0.2}):
         self.id=id
         self.parent=parent
         self.vectorial_capacity_fn=vectorial_capacity_fn
@@ -28,16 +30,19 @@ class Population:
         self.infecteds={}
         if n_infections > n_humans:
             raise Exception('Initial infections not to exceed initial humans.')
+        self.coi = coi
+
         for _ in range(n_infections):
-            self.add_infection_from_genomes([gn.Genome.from_allele_freq()])
+            complexity=rv_discrete(values=(self.coi.keys(),self.coi.values())).rvs()
+            self.add_infection_from_genomes([gn.Genome.from_allele_freq() for c in range(complexity)])
         log.debug(self)
 
     def __str__(self):
         s  = '%s: '           % self.id
         s += 'humans=%d '     % self.n_humans()
         s += 'infections=%d ' % len(self.infecteds)
-        return s
-
+        return s        
+    
     def add_infection_from_genomes(self,genomes):
         ii=self.add_new_infection(genomes)
         if ii:

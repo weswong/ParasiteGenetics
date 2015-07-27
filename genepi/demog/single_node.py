@@ -10,6 +10,7 @@ def init():
             'n_humans' : 500,
             'n_infections' : 20,
             'vectorial_capacity_fn' : demog.annual_cycle(0.2,2e-3,10)
+            'coi' : init_coi_discrete_distribution()
         }
     }
 
