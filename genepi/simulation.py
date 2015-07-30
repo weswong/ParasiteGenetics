@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 import genome as gn
 import population as pop
+import sys
 
 class Simulation:
 

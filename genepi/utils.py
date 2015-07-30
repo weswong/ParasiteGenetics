@@ -1,7 +1,6 @@
 import math
 import random
 from itertools import tee,izip,takewhile
-from scipy.special import gamma 
 
 
 def pairwise(iterable):
@@ -51,10 +50,6 @@ def poissonRandom(lam):
         N+=1
     return N
 
-
-def beta_binom_density(k, n, alpha, beta):
-    ''' return the probablity of occurence k for a beta binomial n, alpha, beta'''
-    return 1.0*gamma(n+1)*gamma(alpha+k)*gamma(n+beta-k)*gamma(alpha+beta) / (gamma(k+1)*gamma(n-k+1)*gamma(alpha+beta+n)*gamma(alpha)*gamma(beta))
 
 
 def binomialApproxRandom(n,p):

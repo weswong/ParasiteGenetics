@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 def run_analyses():
     population_analysis()
     transmission_analysis()
-    genome_analysis()    
+    #genome_analysis()    
     plt.show()
 
 if __name__ == '__main__':

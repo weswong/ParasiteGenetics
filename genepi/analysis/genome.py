@@ -287,8 +287,8 @@ def genome_analysis(file='simulations/GenomeReport.npz',reformat=True,sample=100
     ibd_analysis()
     #cluster_analysis()
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #MATLAB_export('../../examples/simulations/GenomeReport.npz')
-    genome_analysis('../../examples/simulations/GenomeReport.npz',
-                    reformat=True)
-    plt.show()
+    #genome_analysis('../../examples/simulations/GenomeReport.npz',
+    #                reformat=True)
+    #plt.show()

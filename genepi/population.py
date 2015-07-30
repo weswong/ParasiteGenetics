@@ -1,5 +1,7 @@
 import random
 import itertools
+import numpy as np
+import math
 
 import logging
 log = logging.getLogger(__name__)
@@ -19,18 +21,22 @@ class Population:
     def __init__(self, id, parent,
                  n_humans,
                  n_infections=0,
-                 vectorial_capacity_fn=lambda t:0.05,
                  migration_rates={}, 
-                 coi={1:0.2, 2:0.2, 3:0.2, 4:0.2, 5:0.2}):
+                 coi={1:0.2, 2:0.2, 3:0.2, 4:0.2, 5:0.2},
+                 vectorial_capacity_fn =  lambda t:0.05
+                 ):
+                 
         self.id=id
         self.parent=parent
-        self.vectorial_capacity_fn=vectorial_capacity_fn
         self.migration_info=MigrationInfo(migration_rates)
         self.susceptibles=HumanCohort(self,n_humans)
         self.infecteds={}
         if n_infections > n_humans:
             raise Exception('Initial infections not to exceed initial humans.')
-        self.coi = coi
+        self.coi = coi        
+        self.vectorial_capacity_fn=vectorial_capacity_fn
+        
+        print coi
 
         for _ in range(n_infections):
             complexity=rv_discrete(values=(self.coi.keys(),self.coi.values())).rvs()
@@ -102,7 +108,7 @@ class Population:
         self.cohort_migration(dt)
 
     def vectorial_capacity(self):
-        return self.vectorial_capacity_fn(self.parent.day)
+        return self.vectorial_capacity_fn(t=self.parent.day, prob_mixed=mixed_infection_prob(self.calculate_average_coi()))
 
     def n_humans(self):
         return self.susceptibles.n_humans+len(self.infecteds)
@@ -112,7 +118,10 @@ class Population:
 
     def n_polygenomic(self):
         return sum([i.infection.n_strains()>1 for i in self.infecteds.values()])
-
+    
+    def calculate_average_coi(self):
+        return np.mean([i.infection.n_strains() for i in self.infecteds.values()])
+        
     def transmit_emigrant(self,emigrant):
         src_pop,dest_pop=self.id,emigrant.migration.destination
         self.parent.migrants[dest_pop].append((emigrant,src_pop))
@@ -130,3 +139,8 @@ class Population:
         # TODO: extend random migration to round-trip concepts using src_pop
         immigrant.parent=self
         self.infecteds[immigrant.id]=immigrant
+
+
+def mixed_infection_prob(mean_COI):
+    # 1 - P(0) - P(1) = P(>=2)
+    return 1 - math.exp(-mean_COI) - mean_COI*math.exp(-mean_COI)
