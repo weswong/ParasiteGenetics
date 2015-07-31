@@ -51,41 +51,26 @@ def r0_data_prep(r0_params):
 def calculate_r0(r0_params, annual_cycle, mean_COI):
         
     r0_params = r0_data_prep(r0_params) 
+    initial_r0 = r0_params['r0'][0]
     
-    # if non-natural transmission rate is constant
-
     def r0_function(t, prob_mixed):
         index =bisect.bisect_left(r0_params['year'], t) 
-        initial_r0 = r0_params['r0'][0]
         base_reproduction_rate = initial_r0 * r0_params['expire_rate'] * max(0, 1.0 - mean_COI/5.0) * annual_cycle(t)
-
-        def static_r0(current_r0):
-            r0_scale = float(current_r0) / initial_r0
-            r0 = base_reproduction_rate * r0_scale
-            return r0
-    
-        # if non-natural transmission rate is not constant
+        
+        # if non-natural transmission rate is not constant'''
         def dynamic_r0(start_change_t, start_change_R0, end_change_t, end_change_R0, t):
             #end_r0 refers to the period in time where R0 stops changing and becomes constant again
-            #r0_scale = start_change_R0 / initial_r0
-            dr0 = 1.0 - float(end_change_R0) / start_change_R0 
-        
-            # t is entered in days
-            slope =  dr0 / (end_change_t - start_change_t)
-            dt = t - start_change_t
-            
-            r0 = base_reproduction_rate * (1- slope * dt) #* r0_scale 
+            slope = (float(end_change_R0) - start_change_R0) / (end_change_t - start_change_t)
+            delta_t = t-start_change_R0
+            # if r0 is constant across the time points, should collapse down to r0 = base_reproduction_rate * r0_scale, where r0_scale = float(current_r0) / initial_r0
+
+            r0 = base_reproduction_rate * (initial_r0 - (initial_r0 - start_change_R0) + (slope * delta_t)) / float(initial_r0)
             return r0
                 
-        
         if index == len(r0_params['year']):
             raise Exception('Cannot extrapolate beyond the given amount of time with which we have data for: maximum={max}, tried to do time={t}'.format(max=r0_params['year'][-1], t=t))
         else:
-            regime = r0_params['regime'][index]                    
-            if regime == 'constant':
-                r0 = static_r0(r0_params['r0'][index])
-            else:
-                r0 = dynamic_r0(r0_params['year'][index - 1], r0_params['r0'][index -1], 
+            r0 = dynamic_r0(r0_params['year'][index - 1], r0_params['r0'][index -1], 
                                 r0_params['year'][index], r0_params['r0'][index],t)
         return r0
     return r0_function
