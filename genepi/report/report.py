@@ -21,7 +21,8 @@ class PopulationInfectionReport(Report):
         self.data={'tsteps':[],
                    'n_humans':defaultdict(list),
                    'f_infected':defaultdict(list),
-                   'f_polygenomic':defaultdict(list)}
+                   'f_polygenomic':defaultdict(list)
+                   'vectorial_capacity': defaultdict(list)}
 
     def update(self):
         log.debug('Report updated at t=%d',self.parent.day)
@@ -34,6 +35,8 @@ class PopulationInfectionReport(Report):
             self.data['f_infected'][pid].append(f_infected)
             f_poly=float(p.n_polygenomic())/n_infecteds if n_infecteds else 0
             self.data['f_polygenomic'][pid].append(f_poly)
+            vectorial_capacity = p.vectorial_capacity()
+            self.data['vectorial_capacity'].append(vectorial_capacity)
 
     def write(self, working_directory):
         self.data['populations']=self.parent.populations.keys()
