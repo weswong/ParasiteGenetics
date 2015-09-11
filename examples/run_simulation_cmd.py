@@ -16,7 +16,7 @@ def init_genome():
     gn.initialize_from('sequence', bin_size=1000, min_allele_freq=0.03)
 
 def populate_demographics(s):
-    s.populate_from_demographics('single_node_{number}'.format(number=demog_file_number))
+    s.populate_from_demographics('single_node', transmission_rate=tx_rate)
     #s.populate_from_demographics('multi_node', N=10,V =(0.18,3e-3,8), M=4e-4) #1e-4, 5e-4
     #s.populate_from_demographics('grid_node', L=3, V=(0.18,3e-3,8), M=2e-4)
 
@@ -26,12 +26,12 @@ def add_reports(s):
 
 def run_simulation():
     init_genome()
-    s=sim.Simulation(sim_duration=365*25, working_dir = 'simulations_{number}'.format(number=demog_file_number))
+    s=sim.Simulation(sim_duration=365*25, working_dir = 'simulations_{tx_rate}'.format(tx_rate=tx_rate))
     add_reports(s)
     populate_demographics(s)
     s.run()
 
 if __name__ == '__main__':
-    demog_file_number = sys.argv[1]
+    tx_rate = float(sys.argv[1])
     run_simulation()
     #run_analyses()
