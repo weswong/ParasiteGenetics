@@ -11,7 +11,8 @@ import numpy as np
 import glob
 from scipy import stats
 import scipy as sp
-
+import matplotlib as plt
+from matplotlib import plot
 # <codecell>
 
 def extract_data(file):
