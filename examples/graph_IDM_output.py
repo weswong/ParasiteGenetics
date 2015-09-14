@@ -61,9 +61,9 @@ def make_graph(data_dict):
     plot(time, [x[1] for x in f_infected.confidence], color = 'green', alpha=0.5)
     plt.fill_between(time, [x[0] for x in f_infected.confidence], [x[1] for x in f_infected.confidence], color='green', alpha='0.3')
     #real data
-    plt.scatter([365* (x + 5) for x in range(0,8)], ['0.114386', '0.0566608', '0.00882555', '0.00712973', 
-                                                     '0.0278191', '0.0376105', '0.0216132', '0.0533142'],
-                color = 'green')
+    #plt.scatter([365* (x + 5) for x in range(0,8)], ['0.114386', '0.0566608', '0.00882555', '0.00712973', 
+    #                                                 '0.0278191', '0.0376105', '0.0216132', '0.0533142'],
+    #            color = 'green')
     plt.legend(loc='lower left', fontsize=15)
     plt.subplot(2,1,2)
     plot(time, f_polygenomic.mean, label='f_polygenomic', color = 'blue')
@@ -71,9 +71,9 @@ def make_graph(data_dict):
     plot(time, [x[1] for x in f_polygenomic.confidence], color = 'blue', alpha =0.5)
     plt.fill_between(time, [x[0] for x in f_polygenomic.confidence], [x[1] for x in f_polygenomic.confidence], color='blue', alpha='0.3')
     #real data
-    plt.scatter([365* (x + 5) for x in range(0,8)], ['0.312977', '0.334951', '0.119266', '0.177083', 
-                                                     '0.206349', '0.188406', '0.410448', '0.251592'],
-                color = 'blue')
+    #plt.scatter([365* (x + 5) for x in range(0,8)], ['0.312977', '0.334951', '0.119266', '0.177083', 
+    #                                                 '0.206349', '0.188406', '0.410448', '0.251592'],
+    #            color = 'blue')
     
     
     plt.legend(loc='lower left', fontsize=15)
