@@ -85,7 +85,7 @@ def make_graph(data_dict):
 if __name__ == '__main__':
     sns.set_style(style='white', rc=None)
     cwd = os.getcwd()
-    run(cwd)
+    data_dict = run(cwd)
     make_graph(data_dict)
 
 # <codecell>
