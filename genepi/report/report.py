@@ -22,7 +22,7 @@ class PopulationInfectionReport(Report):
                    'n_humans':defaultdict(list),
                    'f_infected':defaultdict(list),
                    'f_polygenomic':defaultdict(list),
-                   'vectorial_capacity':defaultdict(list)
+                   'vectorial_capacity':defaultdict(list),
                    'coi_distribution': defaultdict(list)}
 
     def update(self):
