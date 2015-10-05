@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 import math
 import bisect 
+import collections
 
 import logging
 log = logging.getLogger(__name__)
@@ -122,7 +123,7 @@ class Population:
                 delta_t = t-start_t
                 # if r0 is constant across the time points, should collapse down to r0 = base_reproduction_rate * r0_scale, where r0_scale = float(current_r0) / initial_r0
 
-                vectorial_capacity = base_capacity * (start_R0 + (slope * delta_t) / float(initial_r0))
+                vectorial_capacity = base_capacity * (start_R0 + slope * delta_t) / float(initial_r0)
                 return vectorial_capacity
                     
             if index == len(r0_params['day']):
@@ -145,6 +146,9 @@ class Population:
     def n_polygenomic(self):
         return sum([i.infection.n_strains()>1 for i in self.infecteds.values()])
     
+    def coi_distribution(self):
+        return collections.Counter([i.infection.n_strais() for i in self.infected.values()])
+        
     def calculate_average_coi(self):
         return np.mean([i.infection.n_strains() for i in self.infecteds.values()])
         
