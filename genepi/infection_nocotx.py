@@ -46,7 +46,8 @@ def sample_n_hepatocytes():
 
 def sample_oocyst_products(n_hep,n_ooc):
     oocyst_product_idxs=list(itertools.product(range(n_ooc),range(4)))
-    hep_idxs=[random.choice(oocyst_product_idxs) for _ in range(n_hep)]
+    lucky_oocyst = random.choice(oocyst_product_idxs)
+    hep_idxs=[lucky_oocyst for _ in range(n_hep)]  
     product_idxs=defaultdict(set)
     for o_idx,m_idx in hep_idxs:
         product_idxs[o_idx].add(m_idx)
