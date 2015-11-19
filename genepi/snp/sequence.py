@@ -29,5 +29,5 @@ def positions_from_csv(filename,min_allele_freq):
     return SNPs
 
 def init(min_allele_freq=0):
-    SNPs=positions_from_csv('sequence_loci.csv',min_allele_freq)
+    SNPs=positions_from_csv('senegal_sequence_loci.csv',min_allele_freq)
     return SNPs
